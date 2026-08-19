@@ -14,7 +14,7 @@
 
         {{-- Overlay gradasi supaya teks tetap terbaca di atas foto latar --}}
         <div
-            class="absolute inset-0 bg-gradient-to-r from-[#101a34] via-[#101a34]/60 to-[#101a34]/40 sm:via-[#101a34]/50 sm:to-[#101a34]/30">
+            class="absolute inset-0 bg-linear-to-r from-[#101a34] via-[#101a34]/60 to-[#101a34]/40 sm:via-[#101a34]/50 sm:to-[#101a34]/30">
         </div>
 
         <div class="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:py-28">
