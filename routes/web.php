@@ -10,7 +10,6 @@ use App\Http\Controllers\Auth\LoginController;
 // =============================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-
 // Login admin
 Route::get('/admin/login', [LoginController::class, 'create'])->name('admin.login');
 Route::post('/admin/login', [LoginController::class, 'store'])->name('admin.login.attempt');
@@ -18,7 +17,7 @@ Route::post('/admin/login', [LoginController::class, 'store'])->name('admin.logi
 // ==== Area admin (wajib login + role admin + status aktif) ====
 Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
- 
-    // Placeholder — ganti dengan controller dashboard asli setelah Modul 2 selesai
-    Route::get('/dashboard', fn () => 'Dashboard admin (belum dibuat)')->name('admin.dashboard');
+
+    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
+    Route::view('/users', 'admin.users')->name('admin.users');
 });
