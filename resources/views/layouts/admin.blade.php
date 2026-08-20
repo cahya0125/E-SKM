@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="csrf-token" content="{{ csrf_token() }}">
 	@php
 		$pageTitles = ['dashboard' => 'Dashboard', 'pengguna' => 'Pengguna', 'periode-survei' => 'Periode Survei', 'responden' => 'Responden', 'hasil-survei' => 'Hasil Survei', 'kritik-saran' => 'Kritik & Saran', 'hasil-ikm' => 'Hasil IKM', 'grafik' => 'Grafik', 'laporan' => 'Laporan'];
 		$currentPage = request()->routeIs('admin.users') ? 'pengguna' : request('page', 'dashboard');
@@ -11,14 +12,15 @@
 	<title>@yield('title', $currentPageTitle . ' · e-SKM')</title>
 	@vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="admin-shell antialiased">
+<body class="min-h-screen bg-slate-50 text-[#172b4d] antialiased">
 	<x-admin.sidebar />
-	<div class="admin-main">
-		<header class="admin-header">
-			<div><h1>{{ $currentPageTitle }}</h1><p>Selamat datang, Admin BPBD · Rabu, 12 Agustus 2026</p></div>
-			<div class="admin-header-actions"><span class="admin-bell" aria-label="Notifikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" /></svg><i></i></span><span class="admin-header-avatar">A</span></div>
+	<x-alert />
+	<div class="ml-14 min-h-screen lg:ml-48">
+		<header class="flex h-16 items-center justify-between bg-white px-4 sm:px-6">
+			<div><h1 class="text-base font-semibold">{{ $currentPageTitle }}</h1><p class="mt-1 text-[10px] text-slate-400">Selamat datang, {{ Auth::user()->name }} · {{ now()->locale('id')->translatedFormat('l, d F Y') }}</p></div>
+			<div class="flex items-center gap-4"><span class="relative inline-flex text-slate-500" aria-label="Notifikasi"><i class="fa-solid fa-bell h-5 w-5 text-center" aria-hidden="true"></i><i class="absolute right-[-2px] top-0 h-1 w-1 rounded-full bg-[#c43b2d]"></i></span><span class="grid h-8 w-8 place-content-center rounded-full bg-[#c43b2d] text-xs font-semibold text-white">A</span></div>
 		</header>
-		<main class="admin-content">@yield('content')</main>
+		<main class="p-4 sm:p-5">@yield('content')</main>
 	</div>
 </body>
 </html>

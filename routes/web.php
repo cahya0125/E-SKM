@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Survey\HomeController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PengunaController;
 
 
 // ============================= 
@@ -18,6 +20,10 @@ Route::post('/admin/login', [LoginController::class, 'store'])->name('admin.logi
 Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
 
-    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
-    Route::view('/users', 'admin.users')->name('admin.users');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/users', [PengunaController::class, 'index'])->name('admin.users');
+    Route::post('/users', [PengunaController::class, 'store'])->name('admin.users.store');
+    Route::patch('/users/{user}', [PengunaController::class, 'update'])->name('admin.users.update');
+    Route::post('/users/{user}/reset-password', [PengunaController::class, 'resetPassword'])->name('admin.users.reset-password');
+    Route::delete('/users/{user}', [PengunaController::class, 'destroy'])->name('admin.users.destroy');
 });

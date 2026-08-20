@@ -1,28 +1,40 @@
 @php
-	$currentPage = request()->routeIs('admin.users') ? 'pengguna' : request('page', 'dashboard');
+    $currentPage = request()->routeIs('admin.users') ? 'pengguna' : request('page', 'dashboard');
 @endphp
 
-<aside class="admin-sidebar">
-	<div class="admin-brand">
-		<div class="admin-brand-mark"><img src="{{ asset('assets/img/bpbd-logo.png') }}" alt="Logo BPBD Kota Bandung"></div>
-		<div><strong>e-SKM</strong><span>BPBD Kota Bandung</span></div>
-	</div>
+<aside class="fixed inset-y-0 left-0 z-10 flex w-14 flex-col bg-[#102342] text-slate-400 lg:w-48">
+    <div class="flex h-16 items-center justify-center gap-2 px-3 lg:justify-start">
+        <div
+            class="grid h-9 w-9 shrink-0 place-content-center overflow-hidden rounded-full border-2 border-white bg-white">
+            <img class="h-full w-full object-cover" src="{{ asset('assets/img/bpbd-logo.png') }}"
+                alt="Logo BPBD Kota Bandung"></div>
+        <div class="hidden min-w-0 lg:block"><strong class="block text-xs text-white">e-SKM</strong><span
+                class="mt-0.5 block text-[9px] text-slate-500">BPBD Kota Bandung</span></div>
+    </div>
 
-	<nav class="admin-nav" aria-label="Navigasi admin">
-		@foreach ([
-			['dashboard', 'Dashboard', '⌗'], ['pengguna', 'Pengguna', '♙'],
-			['periode-survei', 'Periode Survei', '▣'], ['responden', 'Responden', '♧'],
-			['hasil-survei', 'Hasil Survei', '▧'], ['kritik-saran', 'Kritik & Saran', '▱'],
-			['hasil-ikm', 'Hasil IKM', '⌁'], ['grafik', 'Grafik', '▥'], ['laporan', 'Laporan', '▤'],
-		] as [$slug, $label, $icon])
-			<a href="{{ $slug === 'pengguna' ? route('admin.users') : route('admin.dashboard', ['page' => $slug]) }}" class="admin-nav-item {{ $currentPage === $slug ? 'is-active' : '' }}">
-				<span class="admin-nav-icon">{{ $icon }}</span><span>{{ $label }}</span>
-			</a>
-		@endforeach
-	</nav>
+    <nav class="grid gap-1 p-2" aria-label="Navigasi admin">
+        @foreach ([['dashboard', 'Dashboard', 'fa-gauge-high'], ['pengguna', 'Pengguna', 'fa-users'], ['periode-survei', 'Periode Survei', 'fa-calendar-days'], ['responden', 'Responden', 'fa-user-group'], ['hasil-survei', 'Hasil Survei', 'fa-square-poll-vertical'], ['kritik-saran', 'Kritik & Saran', 'fa-comments'], ['hasil-ikm', 'Hasil IKM', 'fa-chart-line'], ['grafik', 'Grafik', 'fa-chart-column'], ['laporan', 'Laporan', 'fa-file-lines']] as [$slug, $label, $icon])
+            <a href="{{ $slug === 'pengguna' ? route('admin.users') : route('admin.dashboard', ['page' => $slug]) }}"
+                class="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-xs transition-colors duration-150 hover:bg-white/10 hover:text-white lg:justify-start {{ $currentPage === $slug ? 'bg-[#c43b2d] font-semibold text-white' : '' }}">
+                <i class="fa-solid {{ $icon }} grid w-4 place-content-center text-sm"
+                    aria-hidden="true"></i><span class="hidden lg:inline">{{ $label }}</span>
+            </a>
+        @endforeach
+    </nav>
 
-	<div class="admin-account">
-		<div class="admin-user"><span class="admin-avatar">A</span><div><strong>Admin BPBD</strong><span>Superadmin</span></div></div>
-		<a href="#" class="admin-logout"><span>↪</span> Keluar</a>
-	</div>
+    <div class="mt-auto border-t border-white/10 p-3">
+        <div class="mb-4 flex items-center justify-center gap-2 lg:justify-start"><span
+                class="grid h-7 w-7 shrink-0 place-content-center rounded-full bg-[#c43b2d] text-xs font-semibold text-white">A</span>
+            <div class="hidden lg:block"><strong class="block text-[10px] text-slate-200">{{ auth()->user()->name }}</strong><span
+                    class="mt-0.5 block text-[9px] text-slate-500">{{ auth()->user()->role }}</span></div>
+        </div>
+        <form method="POST" action="{{ route('admin.logout') }}">
+            @csrf
+            <button type="submit"
+                class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md py-1 text-xs font-semibold text-[#e44b3d] transition-colors duration-150 hover:bg-white/10 lg:justify-start">
+                <i class="fa-solid fa-right-from-bracket text-sm" aria-hidden="true"></i>
+                <span class="hidden lg:inline">Keluar</span>
+            </button>
+        </form>
+    </div>
 </aside>

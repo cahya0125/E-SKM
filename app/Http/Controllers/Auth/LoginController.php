@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class LoginController extends Controller
 {
@@ -26,6 +27,8 @@ class LoginController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        $request->user()->forceFill(['last_login_at' => Carbon::now()])->save();
 
         return redirect()->intended(route('admin.dashboard'));
     }
