@@ -12,7 +12,7 @@
     <template x-for="alert in alerts" :key="alert.id">
         <div x-show="alert.visible" x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="translate-y-2 opacity-0 sm:translate-x-4 sm:translate-y-0" x-transition:enter-end="translate-x-0 translate-y-0 opacity-100" x-transition:leave="transition duration-200 ease-in" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-4 opacity-0" class="pointer-events-auto flex w-full items-start gap-3 rounded-xl border bg-white p-4 shadow-lg" :class="styles[alert.type].border" role="alert">
             <span class="grid h-9 w-9 shrink-0 place-content-center rounded-lg" :class="styles[alert.type].iconBackground"><i class="fa-solid text-sm" :class="styles[alert.type].icon" aria-hidden="true"></i></span>
-            <div class="min-w-0 flex-1"><p class="text-sm font-semibold text-slate-800" x-text="alert.title || styles[alert.type].title"></p><p class="mt-1 break-words text-xs leading-5 text-slate-500" x-text="alert.message"></p></div>
+            <div class="min-w-0 flex-1"><p class="text-sm font-semibold text-slate-800" x-text="alert.title || styles[alert.type].title"></p><p class="mt-1 wrap-break-word text-xs leading-5 text-slate-500" x-text="alert.message"></p></div>
             <button type="button" class="grid h-7 w-7 shrink-0 cursor-pointer place-content-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" title="Tutup notifikasi" aria-label="Tutup notifikasi" @click="dismiss(alert.id)"><i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i></button>
         </div>
     </template>
