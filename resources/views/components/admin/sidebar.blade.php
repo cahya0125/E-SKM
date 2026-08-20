@@ -1,5 +1,5 @@
 @php
-    $currentPage = request()->routeIs('admin.users') ? 'pengguna' : request('page', 'dashboard');
+    $currentPage = request()->routeIs('admin.users') ? 'pengguna' : (request()->routeIs('admin.respondens') ? 'responden' : request('page', 'dashboard'));
 @endphp
 
 <aside class="fixed inset-y-0 left-0 z-10 flex w-14 flex-col bg-[#102342] text-slate-400 lg:w-48">
@@ -14,7 +14,7 @@
 
     <nav class="grid gap-1 p-2" aria-label="Navigasi admin">
         @foreach ([['dashboard', 'Dashboard', 'fa-gauge-high'], ['pengguna', 'Pengguna', 'fa-users'], ['periode-survei', 'Periode Survei', 'fa-calendar-days'], ['responden', 'Responden', 'fa-user-group'], ['hasil-survei', 'Hasil Survei', 'fa-square-poll-vertical'], ['kritik-saran', 'Kritik & Saran', 'fa-comments'], ['hasil-ikm', 'Hasil IKM', 'fa-chart-line'], ['grafik', 'Grafik', 'fa-chart-column'], ['laporan', 'Laporan', 'fa-file-lines']] as [$slug, $label, $icon])
-            <a href="{{ $slug === 'pengguna' ? route('admin.users') : route('admin.dashboard', ['page' => $slug]) }}"
+            <a href="{{ $slug === 'pengguna' ? route('admin.users') : ($slug === 'responden' ? route('admin.respondens') : route('admin.dashboard', ['page' => $slug])) }}"
                 class="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-xs transition-colors duration-150 hover:bg-white/10 hover:text-white lg:justify-start {{ $currentPage === $slug ? 'bg-[#c43b2d] font-semibold text-white' : '' }}">
                 <i class="fa-solid {{ $icon }} grid w-4 place-content-center text-sm"
                     aria-hidden="true"></i><span class="hidden lg:inline">{{ $label }}</span>
