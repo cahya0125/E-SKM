@@ -20,8 +20,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'role',
+        'status',
     ];
 
     /**
@@ -43,7 +46,24 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Cek apakah akun ini aktif (dipakai LoginRequest & middleware admin).
+     */
+    public function isAktif(): bool
+    {
+        return $this->status === 'active';
+    }
+ 
+    /**
+     * Cek apakah user punya role admin/superadmin (dipakai middleware admin).
+     */
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'superadmin'], true);
     }
 }
