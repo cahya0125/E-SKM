@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PengunaController;
 use App\Http\Controllers\Admin\RespondensController;
+use App\Http\Controllers\Admin\SaranKritiksController;
 
 
 // ============================= 
@@ -37,4 +38,7 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/respondens', [RespondensController::class, 'store'])->name('admin.respondens.store');
     Route::patch('/respondens/{respondens}', [RespondensController::class, 'update'])->name('admin.respondens.update');
     Route::delete('/respondens/{respondens}', [RespondensController::class, 'destroy'])->name('admin.respondens.destroy');
+
+    Route::get('/kritik-saran', [SaranKritiksController::class, 'index'])->name('admin.kritik-saran');
+
 });

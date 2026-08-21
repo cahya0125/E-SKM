@@ -14,7 +14,7 @@
             <button type="button" class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#102342] px-4 text-xs font-semibold text-white transition hover:bg-[#1b355f]" title="Export Excel"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Export Excel</button>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-[1120px] w-full border-collapse text-left text-xs text-slate-600">
+            <table class="min-w-280 w-full border-collapse text-left text-xs text-slate-600">
                 <thead><tr class="bg-slate-50 text-[10px] uppercase text-slate-500"><th class="h-10 w-12 px-3 text-center">No</th><th class="h-10 px-3">Nama</th><th class="h-10 px-3">JK</th><th class="h-10 px-3">Usia</th><th class="h-10 px-3">Pendidikan</th><th class="h-10 px-3">Pekerjaan</th><th class="h-10 px-3">Jenis Layanan</th><th class="h-10 px-3">Tanggal</th><th class="h-10 px-3">Aksi</th></tr></thead>
                 <tbody>
                     <template x-for="(responden, index) in paginatedRespondens" :key="responden.id">

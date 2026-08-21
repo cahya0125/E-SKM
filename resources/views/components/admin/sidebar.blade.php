@@ -1,7 +1,8 @@
 @php
-    $currentPage = request()->routeIs('admin.users')
-        ? 'pengguna'
-        : (request()->routeIs('admin.respondens') ? 'responden' : request('page', 'dashboard'));
+    $currentPage = request()->routeIs('admin.users') ? 'pengguna'
+        : (request()->routeIs('admin.respondens') ? 'responden'
+        : (request()->routeIs('admin.kritik-saran') ? 'kritik-saran' 
+        : request('page', 'dashboard')));
 @endphp
 
 <aside class="fixed inset-y-0 left-0 z-10 flex w-14 flex-col bg-[#102342] text-slate-400 lg:w-48">
@@ -29,6 +30,7 @@
             ['dashboard', 'Dashboard', 'fa-gauge-high'],
             ['pengguna', 'Pengguna', 'fa-users'],
             // ['periode-survei', 'Periode Survei', 'fa-calendar-days'],
+            ['unsur', 'Unsur', 'fa-list'],
             ['responden', 'Responden', 'fa-user-group'],
             // ['hasil-survei', 'Hasil Survei', 'fa-square-poll-vertical'],
             ['kritik-saran', 'Kritik & Saran', 'fa-comments'],
@@ -48,6 +50,7 @@
                 $href = match ($slug) {
                     'pengguna' => route('admin.users'),
                     'responden' => route('admin.respondens'),
+                    'kritik-saran' => route('admin.kritik-saran'),
                     default => route('admin.dashboard', ['page' => $slug]),
                 };
             @endphp
