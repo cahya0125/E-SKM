@@ -6,7 +6,7 @@
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 	@php
 		$pageTitles = ['dashboard' => 'Dashboard', 'pengguna' => 'Pengguna', 'periode-survei' => 'Periode Survei', 'responden' => 'Responden', 'hasil-survei' => 'Hasil Survei', 'kritik-saran' => 'Kritik & Saran', 'hasil-ikm' => 'Hasil IKM', 'grafik' => 'Grafik', 'laporan' => 'Laporan'];
-		$currentPage = request()->routeIs('admin.users') ? 'pengguna' : request('page', 'dashboard');
+		$currentPage = request()->routeIs('admin.users') ? 'pengguna' : (request()->routeIs('admin.respondens') ? 'responden' : request('page', 'dashboard'));
 		$currentPageTitle = $pageTitles[$currentPage] ?? $pageTitles['dashboard'];
 	@endphp
 	<title>@yield('title', $currentPageTitle . ' · e-SKM')</title>

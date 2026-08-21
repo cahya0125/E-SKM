@@ -5,6 +5,7 @@ use App\Http\Controllers\Survey\HomeController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PengunaController;
+use App\Http\Controllers\Admin\RespondensController;
 
 
 // ============================= 
@@ -31,4 +32,9 @@ Route::middleware('admin')->prefix('admin')->group(function () {
         Route::post('/users/{user}/reset-password', [PengunaController::class, 'resetPassword'])->name('admin.users.reset-password');
         Route::delete('/users/{user}', [PengunaController::class, 'destroy'])->name('admin.users.destroy');
     });
+
+    Route::get('/respondens', [RespondensController::class, 'index'])->name('admin.respondens');
+    Route::post('/respondens', [RespondensController::class, 'store'])->name('admin.respondens.store');
+    Route::patch('/respondens/{respondens}', [RespondensController::class, 'update'])->name('admin.respondens.update');
+    Route::delete('/respondens/{respondens}', [RespondensController::class, 'destroy'])->name('admin.respondens.destroy');
 });
