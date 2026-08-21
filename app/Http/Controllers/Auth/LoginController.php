@@ -15,6 +15,10 @@ class LoginController extends Controller
      */
     public function create()
     {
+        if (Auth::check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return view('auth.login');
     }
 
@@ -24,6 +28,10 @@ class LoginController extends Controller
      */
     public function store(LoginRequest $request)
     {
+        if (Auth::check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         $request->authenticate();
 
         $request->session()->regenerate();
