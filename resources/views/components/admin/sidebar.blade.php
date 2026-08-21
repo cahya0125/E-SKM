@@ -7,31 +7,43 @@
         <div
             class="grid h-9 w-9 shrink-0 place-content-center overflow-hidden rounded-full border-2 border-white bg-white">
             <img class="h-full w-full object-cover" src="{{ asset('assets/img/bpbd-logo.png') }}"
-                alt="Logo BPBD Kota Bandung"></div>
+                alt="Logo BPBD Kota Bandung">
+        </div>
         <div class="hidden min-w-0 lg:block"><strong class="block text-xs text-white">e-SKM</strong><span
                 class="mt-0.5 block text-[9px] text-slate-500">BPBD Kota Bandung</span></div>
     </div>
 
+    @php
+        $hiddenForPetugas = ['pengguna'];
+    @endphp
+
     <nav class="grid gap-1 p-2" aria-label="Navigasi admin">
         @foreach ([['dashboard', 'Dashboard', 'fa-gauge-high'], ['pengguna', 'Pengguna', 'fa-users'], ['periode-survei', 'Periode Survei', 'fa-calendar-days'], ['responden', 'Responden', 'fa-user-group'], ['hasil-survei', 'Hasil Survei', 'fa-square-poll-vertical'], ['kritik-saran', 'Kritik & Saran', 'fa-comments'], ['hasil-ikm', 'Hasil IKM', 'fa-chart-line'], ['grafik', 'Grafik', 'fa-chart-column'], ['laporan', 'Laporan', 'fa-file-lines']] as [$slug, $label, $icon])
             <a href="{{ $slug === 'pengguna' ? route('admin.users') : ($slug === 'responden' ? route('admin.respondens') : route('admin.dashboard', ['page' => $slug])) }}"
+            @if (auth()->user()->role === 'petugas' && in_array($slug, $hiddenForPetugas))
+                @continue
+            @endif
+
+            <a href="{{ $slug === 'pengguna' ? route('admin.users') : ($slug === 'responden' ? route('admin.respondens') : route('admin.dashboard', ['page' => $slug])) }}"
                 class="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-xs transition-colors duration-150 hover:bg-white/10 hover:text-white lg:justify-start {{ $currentPage === $slug ? 'bg-[#c43b2d] font-semibold text-white' : '' }}">
-                <i class="fa-solid {{ $icon }} grid w-4 place-content-center text-sm"
-                    aria-hidden="true"></i><span class="hidden lg:inline">{{ $label }}</span>
+
+                <i class="fa-solid {{ $icon }} grid w-4 place-content-center text-sm"></i>
+                <span class="hidden lg:inline">{{ $label }}</span>
             </a>
         @endforeach
     </nav>
 
     <div class="mt-auto border-t border-white/10 p-3">
         <div class="mb-4 flex items-center justify-center gap-2 lg:justify-start"><span
-                class="grid h-7 w-7 shrink-0 place-content-center rounded-full bg-[#c43b2d] text-xs font-semibold text-white">A</span>
-            <div class="hidden lg:block"><strong class="block text-[10px] text-slate-200">{{ auth()->user()->name }}</strong><span
+                class="grid h-7 w-7 shrink-0 place-content-center rounded-full bg-[#c43b2d] text-xs font-semibold text-white">{{ strtoupper(Str::substr(auth()->user()->name, 0, 1)) }}</span>
+            <div class="hidden lg:block"><strong
+                    class="block text-[10px] text-slate-200">{{ auth()->user()->name }}</strong><span
                     class="mt-0.5 block text-[9px] text-slate-500">{{ auth()->user()->role }}</span></div>
         </div>
         <form method="POST" action="{{ route('admin.logout') }}">
             @csrf
             <button type="submit"
-                class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md py-1 text-xs font-semibold text-[#e44b3d] transition-colors duration-150 hover:bg-white/10 lg:justify-start">
+                class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md p-3 text-xs font-semibold text-[#e44b3d] transition-colors duration-150 hover:bg-white/10 lg:justify-start">
                 <i class="fa-solid fa-right-from-bracket text-sm" aria-hidden="true"></i>
                 <span class="hidden lg:inline">Keluar</span>
             </button>

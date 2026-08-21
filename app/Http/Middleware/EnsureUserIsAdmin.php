@@ -10,11 +10,11 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserIsAdmin
 {
     /**
-     * Lindungi semua route dashboard admin.
+     * Lindungi semua route area admin.
      *
      * Ditolak (redirect ke form login + pesan) kalau:
      * - belum login
-     * - role-nya bukan admin/superadmin
+     * - role-nya bukan admin/petugas
      * - akunnya berstatus nonaktif
      */
     public function handle(Request $request, Closure $next): Response
@@ -27,7 +27,7 @@ class EnsureUserIsAdmin
                 ->with('error', 'Silakan login terlebih dahulu.');
         }
 
-        if ($user->role !== 'admin' || $user->status !== 'active') {
+        if (! in_array($user->role, ['admin', 'petugas'], true) || $user->status !== 'active') {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
