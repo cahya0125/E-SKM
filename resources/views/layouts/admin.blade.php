@@ -10,6 +10,7 @@
 		$pageTitles = [
 			'dashboard' => 'Dashboard',
 			'pengguna' => 'Pengguna',
+			'unsur-pelayanan' => 'Unsur Pelayanan',
 			'periode-survei' => 'Periode Survei',
 			'responden' => 'Responden',
 			'hasil-survei' => 'Hasil Survei',
@@ -23,7 +24,9 @@
 			? 'pengguna'
 			: (request()->routeIs('admin.respondens')
 				? 'responden'
-				: (request()->routeIs('admin.kritik-saran') ? 'kritik-saran' : request('page', 'dashboard')));
+				: (request()->routeIs('admin.kritik-saran') ? 'kritik-saran'
+				: (request()->routeIs('admin.unsur-pelayanan') ? 'unsur-pelayanan' 
+				: request('page', 'dashboard'))));
 
 		$currentPageTitle = $pageTitles[$currentPage] ?? $pageTitles['dashboard'];
 	@endphp

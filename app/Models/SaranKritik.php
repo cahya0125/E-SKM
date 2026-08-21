@@ -18,6 +18,6 @@ class SaranKritik extends Model
 
     public function survei()
     {
-        return $this->belongsTo(Survei::class, 'id_survei', 'id_survei');
+        // return $this->belongsTo(Survei::class, 'id_survei', 'id_survei');
     }
 }

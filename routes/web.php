@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PengunaController;
 use App\Http\Controllers\Admin\RespondensController;
 use App\Http\Controllers\Admin\SaranKritiksController;
+use App\Http\Controllers\Admin\UnsurPelayananController;
 
 
 // ============================= 
@@ -19,7 +20,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [LoginController::class, 'create'])->name('admin.login');
     Route::post('/admin/login', [LoginController::class, 'store'])->name('admin.login.attempt');
 });
- 
+
 // ==== Area admin (wajib login + role admin/petugas + status aktif) ====
 Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('admin.logout');
@@ -41,4 +42,8 @@ Route::middleware('admin')->prefix('admin')->group(function () {
 
     Route::get('/kritik-saran', [SaranKritiksController::class, 'index'])->name('admin.kritik-saran');
 
+    Route::get('/unsur-pelayanan', [UnsurPelayananController::class, 'index'])->name('admin.unsur-pelayanan');
+    Route::post('/unsur-pelayanan', [UnsurPelayananController::class, 'store'])->name('admin.unsur-pelayanan.store');
+    Route::patch('/unsur-pelayanan/{unsurPelayanan}', [UnsurPelayananController::class, 'update'])->name('admin.unsur-pelayanan.update');
+    Route::delete('/unsur-pelayanan/{unsurPelayanan}', [UnsurPelayananController::class, 'destroy'])->name('admin.unsur-pelayanan.destroy');
 });
