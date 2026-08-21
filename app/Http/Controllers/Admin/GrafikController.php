@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+
+class GrafikController extends Controller
+{
+    public function index()
+    {
+        $trend = DB::table('hasil_ikms')
+            ->join('priode_surveis', 'priode_surveis.id', '=', 'hasil_ikms.priode_survei_id')
+            ->orderBy('priode_surveis.tanggal_mulai')
+            ->get(['priode_surveis.tanggal_mulai', 'hasil_ikms.nilai_ikm'])
+            ->groupBy(fn ($item) => substr($item->tanggal_mulai, 0, 4))
+            ->map(fn ($items, $year) => ['year' => $year, 'value' => round((float) $items->avg('nilai_ikm'), 2)])
+            ->values();
+
+        $elements = DB::table('hasil_ikm_details')
+            ->join('unsur_pelayanans', 'unsur_pelayanans.id', '=', 'hasil_ikm_details.unsur_pelayanan_id')
+            ->select('unsur_pelayanans.nama_unsur', DB::raw('AVG(hasil_ikm_details.nilai_rata_rata * 20) as nilai'))
+            ->groupBy('unsur_pelayanans.id', 'unsur_pelayanans.nama_unsur')
+            ->orderBy('unsur_pelayanans.id')->get();
+
+        $gender = DB::table('respondens')
+            ->select('jenis_kelamin', DB::raw('COUNT(*) as total'))
+            ->groupBy('jenis_kelamin')->orderBy('jenis_kelamin')->get();
+
+        $jobs = DB::table('respondens')
+            ->select('pekerjaan', DB::raw('COUNT(*) as total'))
+            ->groupBy('pekerjaan')->orderByDesc('total')->get();
+
+        $data = [
+            'trend' => ['labels' => $trend->pluck('year')->values(), 'values' => $trend->pluck('value')->values()],
+            'elements' => ['labels' => $elements->pluck('nama_unsur')->values(), 'values' => $elements->pluck('nilai')->map(fn ($value) => round((float) $value, 2))->values()],
+            'gender' => ['labels' => $gender->pluck('jenis_kelamin')->map(fn ($value) => $value === 'L' ? 'Laki-laki' : 'Perempuan')->values(), 'values' => $gender->pluck('total')->map(fn ($value) => (int) $value)->values()],
+            'jobs' => ['labels' => $jobs->pluck('pekerjaan')->values(), 'values' => $jobs->pluck('total')->map(fn ($value) => (int) $value)->values()],
+        ];
+
+        return view('admin.grafik', compact('data'));
+    }
+}
