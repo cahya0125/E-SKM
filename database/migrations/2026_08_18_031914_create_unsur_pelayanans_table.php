@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama_unsur');
             $table->string('pertanyaan');
+            $table->json('opsi_jawaban')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });

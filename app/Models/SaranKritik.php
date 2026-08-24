@@ -6,18 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class SaranKritik extends Model
 {
-    protected $table = 'saran_kritik';
-    protected $primaryKey = 'id_saran';
-    public $timestamps = false;
+    protected $table = 'saran_kritiks';
 
     protected $fillable = [
-        'id_survei',
+        'survei_id',
         'saran',
         'status',
     ];
 
     public function survei()
     {
-        // return $this->belongsTo(Survei::class, 'id_survei', 'id_survei');
+        return $this->belongsTo(Survei::class, 'survei_id');
     }
 }

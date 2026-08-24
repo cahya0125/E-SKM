@@ -8,7 +8,7 @@
     <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-xs text-slate-500">
-                <span x-text="items.length"></span> unsur terdaftar 
+                <span x-text="items.length"></span> unsur terdaftar · sesuai Permenpan RB No. 14/2017
             </p>
 
             <button
@@ -157,6 +157,24 @@
                     ></textarea>
                 </label>
 
+                <fieldset>
+                    <legend class="mb-1">Opsi Jawaban (Skala 1–5) <b class="text-[#c43b2d]">*</b></legend>
+                    <p class="mb-2 text-[10px] font-normal text-slate-400">Label yang muncul di form survei untuk tiap nilai.</p>
+                    <div class="grid gap-2">
+                        <template x-for="(label, idx) in form.opsi_jawaban" :key="idx">
+                            <div class="flex items-center gap-2">
+                                <span class="grid h-10 w-8 shrink-0 place-content-center rounded-lg bg-slate-100 text-[11px] font-semibold text-slate-500" x-text="idx + 1"></span>
+                                <input
+                                    class="block h-10 w-full rounded-lg border border-slate-200 px-3 font-normal outline-0 focus:border-[#c43b2d]"
+                                    x-model="form.opsi_jawaban[idx]"
+                                    :placeholder="`Label untuk nilai ${idx + 1}`"
+                                    required
+                                >
+                            </div>
+                        </template>
+                    </div>
+                </fieldset>
+
                 <p class="text-xs font-normal text-red-500" x-show="error" x-text="error"></p>
 
                 <div class="flex justify-end gap-3">
@@ -174,7 +192,7 @@
             items: @json($items),
             modalOpen: false,
             editingId: null,
-            form: { nama_unsur: '', pertanyaan: '', status: 'active' },
+            form: { nama_unsur: '', pertanyaan: '', status: 'active', opsi_jawaban: ['', '', '', '', ''] },
             error: '',
 
             get displayKode() {
@@ -206,7 +224,7 @@
 
             openCreate() {
                 this.editingId = null;
-                this.form = { nama_unsur: '', pertanyaan: '', status: 'active' };
+                this.form = { nama_unsur: '', pertanyaan: '', status: 'active', opsi_jawaban: ['', '', '', '', ''] };
                 this.error = '';
                 this.modalOpen = true;
             },
@@ -217,6 +235,7 @@
                     nama_unsur: item.nama_unsur,
                     pertanyaan: item.pertanyaan,
                     status: item.status,
+                    opsi_jawaban: [...item.opsi_jawaban],
                 };
                 this.error = '';
                 this.modalOpen = true;

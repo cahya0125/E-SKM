@@ -21,11 +21,7 @@ class UnsurPelayananController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama_unsur' => 'required|string|max:255',
-            'pertanyaan' => 'required|string|max:255',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $validated = $this->validated($request);
 
         UnsurPelayanan::create($validated);
 
@@ -34,11 +30,7 @@ class UnsurPelayananController extends Controller
 
     public function update(Request $request, UnsurPelayanan $unsurPelayanan)
     {
-        $validated = $request->validate([
-            'nama_unsur' => 'required|string|max:255',
-            'pertanyaan' => 'required|string|max:255',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $validated = $this->validated($request);
 
         $unsurPelayanan->update($validated);
 
@@ -50,6 +42,17 @@ class UnsurPelayananController extends Controller
         $unsurPelayanan->delete();
 
         return response()->json($this->transformedItems());
+    }
+
+    private function validated(Request $request): array
+    {
+        return $request->validate([
+            'nama_unsur' => 'required|string|max:255',
+            'pertanyaan' => 'required|string|max:255',
+            'status' => 'required|in:active,inactive',
+            'opsi_jawaban' => 'required|array|size:5',
+            'opsi_jawaban.*' => 'required|string|max:100',
+        ]);
     }
 
     private function transformedItems()
@@ -67,6 +70,7 @@ class UnsurPelayananController extends Controller
             'kode' => 'U' . $position,
             'nama_unsur' => $item->nama_unsur,
             'pertanyaan' => $item->pertanyaan,
+            'opsi_jawaban' => $item->opsi_jawaban ?? ['', '', '', '', ''],
             'status' => $item->status,
         ];
     }
