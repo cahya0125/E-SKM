@@ -40,5 +40,8 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::delete('/respondens/{respondens}', [RespondensController::class, 'destroy'])->name('admin.respondens.destroy');
 
     Route::get('/kritik-saran', [SaranKritiksController::class, 'index'])->name('admin.kritik-saran');
+    Route::patch('/saran-kritik/{saranKritik}/status', [SaranKritiksController::class, 'updateStatus'])->name('admin.kritik-saran.update-status');
+    Route::delete('/saran-kritik/{saranKritik}', [SaranKritiksController::class, 'destroy'])->name('admin.kritik-saran.destroy');
 
+    
 });

@@ -16,8 +16,6 @@ class DatabaseSeeder extends Seeder
         DB::table('surveis')->delete();
         DB::table('unsur_pelayanans')->delete();
         DB::table('respondens')->delete();
-        DB::table('priode_surveis')->delete();
-        DB::table('jenis_layanans')->delete();
 
         $this->call([
             UserSeeder::class,

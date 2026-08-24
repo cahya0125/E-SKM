@@ -13,11 +13,8 @@ return new class extends Migration
     {
         Schema::create('surveis', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('priode_survei_id')->constrained('priode_surveis')->onDelete('cascade');
-            $table->foreignId('jenis_layanan_id')->constrained('jenis_layanans')->onDelete('cascade');
             $table->foreignId('responden_id')->constrained('respondens')->onDelete('cascade');
-            $table->string('nama_responden');
-            $table->string('alamat_responden');
+            $table->string('jenis_layanan');
             $table->timestamps();
         });
     }
