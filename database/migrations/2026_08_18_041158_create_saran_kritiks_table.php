@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('survei_id')->constrained('surveis')->onDelete('cascade')->onUpdate('cascade');
             $table->text('saran')->nullable();
+            $table->enum('status', ['baru', 'ditinjau', 'selesai'])->default('baru');
             $table->timestamps();
         });
     }

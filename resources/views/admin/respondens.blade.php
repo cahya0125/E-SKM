@@ -8,13 +8,12 @@
         <div class="flex flex-col gap-3 border-b border-slate-100 p-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex flex-col gap-2 sm:flex-row">
                 <label class="flex h-9 w-full items-center gap-2 rounded-lg border border-slate-200 px-3 text-slate-400 sm:w-56"><i class="fa-solid fa-magnifying-glass text-[11px]" aria-hidden="true"></i><input class="w-full border-0 text-xs text-slate-600 outline-0" type="search" x-model="search" placeholder="Cari responden..." aria-label="Cari responden"></label>
-                <select class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-600 outline-0" x-model="selectedPeriod" aria-label="Filter periode"><option value="">Semua Periode</option><template x-for="period in periods" :key="period"><option :value="period" x-text="period"></option></template></select>
                 <select class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-600 outline-0" x-model="selectedService" aria-label="Filter layanan"><option value="">Semua Layanan</option><template x-for="service in services" :key="service"><option :value="service" x-text="service"></option></template></select>
             </div>
             <button type="button" class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-[#102342] px-4 text-xs font-semibold text-white transition hover:bg-[#1b355f]" title="Export Excel"><i class="fa-solid fa-file-excel" aria-hidden="true"></i> Export Excel</button>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-[1120px] w-full border-collapse text-left text-xs text-slate-600">
+            <table class="min-w-280 w-full border-collapse text-left text-xs text-slate-600">
                 <thead><tr class="bg-slate-50 text-[10px] uppercase text-slate-500"><th class="h-10 w-12 px-3 text-center">No</th><th class="h-10 px-3">Nama</th><th class="h-10 px-3">JK</th><th class="h-10 px-3">Usia</th><th class="h-10 px-3">Pendidikan</th><th class="h-10 px-3">Pekerjaan</th><th class="h-10 px-3">Jenis Layanan</th><th class="h-10 px-3">Tanggal</th><th class="h-10 px-3">Aksi</th></tr></thead>
                 <tbody>
                     <template x-for="(responden, index) in paginatedRespondens" :key="responden.id">
@@ -89,17 +88,15 @@
 <script>
 function respondenManagement() {
     return {
-        search: '', selectedPeriod: '', selectedService: '', modalOpen: false, detailMode: false, editingId: null, activeResponden: null, error: '', form: {},
+        search: '', selectedService: '', modalOpen: false, detailMode: false, editingId: null, activeResponden: null, error: '', form: {},
         page: 1, perPage: 8,
         respondens: @json($respondens),
         init() {
             this.$watch('search', () => { this.page = 1; });
-            this.$watch('selectedPeriod', () => { this.page = 1; });
             this.$watch('selectedService', () => { this.page = 1; });
         },
-        get periods() { return [...new Set(this.respondens.map(item => item.periode).filter(item => item !== '-'))]; },
         get services() { return [...new Set(this.respondens.map(item => item.jenisLayanan).filter(item => item !== '-'))]; },
-        get filteredRespondens() { const term = this.search.toLowerCase(); return this.respondens.filter(item => `${item.nama} ${item.pendidikan} ${item.pekerjaan}`.toLowerCase().includes(term) && (!this.selectedPeriod || item.periode === this.selectedPeriod) && (!this.selectedService || item.jenisLayanan === this.selectedService)); },
+        get filteredRespondens() { const term = this.search.toLowerCase(); return this.respondens.filter(item => `${item.nama} ${item.pendidikan} ${item.pekerjaan}`.toLowerCase().includes(term) && (!this.selectedService || item.jenisLayanan === this.selectedService)); },
         get totalPages() { return Math.max(1, Math.ceil(this.filteredRespondens.length / this.perPage)); },
         get paginatedRespondens() { if (this.page > this.totalPages) this.page = this.totalPages; const start = (this.page - 1) * this.perPage; return this.filteredRespondens.slice(start, start + this.perPage); },
         get pageList() { const total = this.totalPages; const current = Math.min(this.page, total); const delta = 1; const range = []; for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) { range.push(i); } if (current - delta > 2) { range.unshift('...'); } if (current + delta < total - 1) { range.push('...'); } range.unshift(1); if (total > 1) { range.push(total); } return range; },

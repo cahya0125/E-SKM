@@ -6,5 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Respondens extends Model
 {
-    protected $fillable = ['nama', 'jenis_kelamin', 'usia', 'pendidikan', 'pekerjaan', 'no_hp'];
+    protected $table = 'respondens';
+
+    protected $fillable = [
+        'nama',
+        'jenis_kelamin',
+        'usia',
+        'pendidikan',
+        'pekerjaan',
+        'no_hp',
+    ];
+
+    public function survei()
+    {
+        return $this->hasMany(Survei::class, 'responden_id');
+    }
 }

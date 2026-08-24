@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('respondens', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
+            $table->string('nama')->default('Masyarakat');
             $table->enum('jenis_kelamin', ['L', 'P']);
             $table->string('usia');
-            $table->string('pendidikan');
-            $table->string('pekerjaan');
+            $table->enum('pendidikan', ['Tidak Sekolah', 'SD', 'SMP', 'SMA', 'D3', 'S1', 'S2', 'S3']);
+            $table->enum('pekerjaan', ['Pelajar/Mahasiswa', 'ASN', 'TNI','Polri', 'Swasta', 'Wirausaha', 'Lainnya']);
             $table->string('no_hp')->nullable();
             $table->timestamps();
         });
