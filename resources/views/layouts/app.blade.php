@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>{{ $title ?? 'e-SKM' }}</title>
-
+    <title>@yield('title', 'e-SKM · BPBD Kota Bandung')</title>
+    <link rel="shortcut icon" href="{{ asset('assets/img/bpbd-logo.png') }}" type="image/x-icon">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="min-h-screen bg-gray-100 text-gray-900">
+<body class="bg-white text-slate-800 antialiased">
+    <x-survey.navbar />
 
-    @yield('content')
+    <main>
+        @yield('content')
+    </main>
 
+    <x-survey.footer />
 </body>
 </html>

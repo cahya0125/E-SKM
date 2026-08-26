@@ -898,7 +898,7 @@ Dengan cara ini logic perhitungan dapat digunakan kembali oleh:
 Setiap anggota menggunakan checklist:
 
 ```text
-[ ] Migration selesai
+[x] Migration selesai
 [ ] Model selesai
 [ ] Relationship selesai
 [ ] Validation selesai
