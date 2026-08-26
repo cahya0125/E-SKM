@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\RespondensController;
 use App\Http\Controllers\Admin\SaranKritiksController;
 use App\Http\Controllers\Admin\UnsurPelayananController;
 use App\Http\Controllers\Admin\HasilIkmController;
+use App\Http\Controllers\Laporan\LaporanController;
 
 
 // ============================= 
@@ -53,4 +54,9 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::get('/hasil-ikm', [HasilIkmController::class, 'index'])->name('admin.hasil-ikm');
     Route::post('/hasil-ikm/hitung-ulang', [HasilIkmController::class, 'hitungUlang'])->name('admin.hasil-ikm.hitung-ulang');
     Route::get('/hasil-ikm/pdf', [HasilIkmController::class, 'downloadPdf'])->name('admin.hasil-ikm.pdf');
+
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('admin.laporan');
+    Route::post('/laporan/pdf', [LaporanController::class, 'exportPdf'])->name('admin.laporan.pdf');
+    Route::post('/laporan/word', [LaporanController::class, 'exportWord'])->name('admin.laporan.word');
+    Route::post('/laporan/excel', [LaporanController::class, 'exportExcel'])->name('admin.laporan.excel');
 });

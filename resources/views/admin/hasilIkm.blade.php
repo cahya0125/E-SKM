@@ -101,7 +101,7 @@
             <article class="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
                 <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Kinerja Pelayanan</p>
                 <p class="mt-2 text-3xl font-bold text-slate-800">{{ $hasil['kinerja_pelayanan'] }}</p>
-                <p class="mt-2 text-[11px] text-slate-400">NRR × 25</p>
+                <p class="mt-2 text-[11px] text-slate-400">NRR × 20</p>
             </article>
 
             <article class="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
