@@ -1,9 +1,12 @@
 @php
-    $currentPage = request()->routeIs('admin.users') ? 'pengguna'
+    $currentPage = request()->routeIs('admin.dashboard')
+        ? request('page', 'dashboard')
+        : (request()->routeIs('admin.users') ? 'pengguna'
         : (request()->routeIs('admin.respondens') ? 'responden'
-        : (request()->routeIs('admin.kritik-saran') ? 'kritik-saran' 
+        : (request()->routeIs('admin.kritik-saran') ? 'kritik-saran'
         : (request()->routeIs('admin.unsur-pelayanan') ? 'unsur-pelayanan'
-        : request('page', 'dashboard'))));
+        : (request()->routeIs('admin.hasil-ikm') ? 'hasil-ikm'
+        : request('page', 'dashboard'))))));
 @endphp
 
 <aside class="fixed inset-y-0 left-0 z-10 flex w-14 flex-col bg-[#102342] text-slate-400 lg:w-48">
