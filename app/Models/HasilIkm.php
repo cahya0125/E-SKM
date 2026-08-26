@@ -18,4 +18,9 @@ class HasilIkm extends Model
     {
         return $this->belongsTo(Survei::class);
     }
+
+    public function details()
+    {
+        return $this->hasMany(HasilIkmDetail::class);
+    }
 }
