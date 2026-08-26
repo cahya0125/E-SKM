@@ -26,18 +26,17 @@ class MasterDataSeeder extends Seeder
             DB::table('unsur_pelayanans')->insert($item + ['status' => 'active', 'created_at' => $now, 'updated_at' => $now]);
         }
 
-        $nama = ['Andi Setiawan', 'Budi Hartono', 'Citra Lestari', 'Dewi Anggraini', 'Eko Prasetyo', 'Fitri Nuraini', 'Galih Ramadhan', 'Hana Mulyani', 'Irfan Maulana', 'Joko Susanto', 'Kiki Amelia', 'Lina Marlina', 'Maman Suherman', 'Nia Kurniasih', 'Oki Firmansyah'];
         $pendidikan = ['SMA', 'D3', 'S1', 'S2'];
         $pekerjaan = ['ASN', 'Swasta', 'Wirausaha', 'Pelajar/Mahasiswa'];
 
-        foreach ($nama as $index => $namaResponden) {
+        foreach (range(1, 53) as $index) {
             DB::table('respondens')->insert([
-                'nama' => $namaResponden,
-                'jenis_kelamin' => $index % 2 === 0 ? 'L' : 'P',
-                'usia' => (string) (21 + ($index * 3) % 39),
-                'pendidikan' => $pendidikan[$index % count($pendidikan)],
-                'pekerjaan' => $pekerjaan[$index % count($pekerjaan)],
-                'no_hp' => '0812'.str_pad((string) ($index + 1), 8, '0', STR_PAD_LEFT),
+            'nama' => 'Responden '.str_pad((string) $index, 2, '0', STR_PAD_LEFT),
+            'jenis_kelamin' => $index % 2 === 1 ? 'L' : 'P',
+            'usia' => (string) (21 + (($index - 1) * 3) % 39),
+            'pendidikan' => $pendidikan[($index - 1) % count($pendidikan)],
+            'pekerjaan' => $pekerjaan[($index - 1) % count($pekerjaan)],
+            'no_hp' => '0812'.str_pad((string) $index, 8, '0', STR_PAD_LEFT),
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);

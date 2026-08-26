@@ -53,6 +53,7 @@
                     'responden' => route('admin.respondens'),
                     'kritik-saran' => route('admin.kritik-saran'),
                     'unsur-pelayanan' => route('admin.unsur-pelayanan'),
+                    'hasil-ikm' => route('admin.hasil-ikm'),
                     default => route('admin.dashboard', ['page' => $slug]),
                 };
             @endphp

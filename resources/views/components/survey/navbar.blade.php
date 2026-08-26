@@ -32,9 +32,9 @@ window.addEventListener('scroll', () => { scrolled = window.scrollY > 10 })"
                 Mulai Survei
             </a>
 
-            <a href="{{ route('admin.login') }}"
+            <a href="{{ auth()->check() ? route('admin.dashboard') : route('admin.login') }}"
                 class="rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 transition">
-                Admin
+                {{ auth()->check() ? 'Dashboard' : 'Admin' }}
             </a>
         </div>
 
@@ -69,9 +69,9 @@ window.addEventListener('scroll', () => { scrolled = window.scrollY > 10 })"
             Mulai Survei
         </a>
 
-        <a href="{{ route('admin.login') }}"
+        <a href="{{ auth()->check() ? route('admin.dashboard') : route('admin.login') }}"
             class="mt-2 block rounded-lg border border-white/20 px-3 py-2.5 text-center text-sm font-semibold text-white hover:bg-white/10 transition">
-            Admin
+            {{ auth()->check() ? 'Dashboard' : 'Admin' }}
         </a>
     </div>
 </header>
