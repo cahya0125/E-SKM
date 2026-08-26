@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PengunaController;
 use App\Http\Controllers\Admin\RespondensController;
 use App\Http\Controllers\Admin\SaranKritiksController;
 use App\Http\Controllers\Admin\UnsurPelayananController;
+use App\Http\Controllers\Survey\SurveyController;
 
 
 // ============================= 
@@ -49,4 +50,19 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/unsur-pelayanan', [UnsurPelayananController::class, 'store'])->name('admin.unsur-pelayanan.store');
     Route::patch('/unsur-pelayanan/{unsurPelayanan}', [UnsurPelayananController::class, 'update'])->name('admin.unsur-pelayanan.update');
     Route::delete('/unsur-pelayanan/{unsurPelayanan}', [UnsurPelayananController::class, 'destroy'])->name('admin.unsur-pelayanan.destroy');
+});
+
+//Survey
+Route::prefix('survei')->name('survey.')->controller(SurveyController::class)->group(function () {
+    Route::get('/mulai', 'mulai')->name('mulai');                    // halaman "Mulai Survei"
+    Route::post('/mulai', 'start')->name('start');
+    Route::get('/responden', 'responden')->name('responden');
+    Route::post('/responden', 'saveResponden')->name('responden.save');
+    Route::get('/penilaian', 'penilaian')->name('penilaian');
+    Route::post('/penilaian', 'savePenilaian')->name('penilaian.save');
+    Route::get('/saran', 'saran')->name('saran');
+    Route::post('/saran', 'saveSaran')->name('saran.save');
+    Route::get('/review', 'review')->name('review');
+    Route::post('/kirim', 'submit')->name('submit');
+    Route::get('/selesai', 'selesai')->name('selesai');
 });

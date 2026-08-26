@@ -27,7 +27,7 @@ window.addEventListener('scroll', () => { scrolled = window.scrollY > 10 })"
                 Beranda
             </a>
 
-            <a href=""
+            <a href="{{ route('survey.mulai') }}"
                 class="rounded-lg bg-[#dc4b3f] px-4 py-2 text-sm font-semibold text-white shadow hover:bg-[#c9392e] transition">
                 Mulai Survei
             </a>
