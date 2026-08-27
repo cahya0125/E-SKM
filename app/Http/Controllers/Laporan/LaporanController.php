@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Laporan;
 use App\Exports\LaporanIkmExport;
 use App\Http\Controllers\Controller;
 use App\Models\Survei;
+use App\Models\JawabanSurvei;
 use App\Traits\HitungIkm;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -19,8 +20,18 @@ class LaporanController extends Controller
     use HitungIkm;
 
     private array $bulanList = [
-        1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun',
-        7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des',
+        1 => 'Jan',
+        2 => 'Feb',
+        3 => 'Mar',
+        4 => 'Apr',
+        5 => 'Mei',
+        6 => 'Jun',
+        7 => 'Jul',
+        8 => 'Agu',
+        9 => 'Sep',
+        10 => 'Okt',
+        11 => 'Nov',
+        12 => 'Des',
     ];
 
     public function index(Request $request)
@@ -57,8 +68,40 @@ class LaporanController extends Controller
         $konten = $request->input('konten') ?: $this->regenerateKonten($request);
 
         $phpWord = new PhpWord();
-        $section = $phpWord->addSection();
-        PhpWordHtml::addHtml($section, $this->normalizeWordHtml($konten), false, false);
+
+        // pastikan margin section standar biar konsisten dgn PDF
+        $section = $phpWord->addSection([
+            'marginLeft'   => 1417, // ~2.5cm dlm twips
+            'marginRight'  => 1417,
+            'marginTop'    => 1417,
+            'marginBottom' => 1417,
+        ]);
+
+        // PhpWord\Shared\Html TIDAK mendukung CSS "page-break-before".
+        // Di Blade, pindah halaman ditandai dengan:
+        //   <div style="page-break-before:always;"></div>
+        // Untuk PDF (DomPDF) ini otomatis jalan karena DomPDF paham CSS.
+        // Untuk Word kita harus pecah HTML manual di titik itu dan
+        // panggil addPageBreak() sendiri.
+        $potongan = preg_split(
+            '/<div\s+style="page-break-before:\s*always;?\s*"\s*>\s*<\/div>/i',
+            $konten
+        );
+
+        foreach ($potongan as $index => $bagian) {
+            if ($index > 0) {
+                $section->addPageBreak();
+            }
+
+            if (trim($bagian) === '') {
+                continue;
+            }
+
+            PhpWordHtml::addHtml($section, $this->normalizeWordHtml($bagian), false, false);
+        }
+
+        $this->forceTableFullWidth($section);   // <-- fix "offside", sekarang cuma tabel top-level
+        $this->forceThinTableBorders($section);
 
         $filename = $this->namaFile($request, 'docx');
 
@@ -101,14 +144,16 @@ class LaporanController extends Controller
 
         if ($container) {
             foreach ($container->childNodes as $child) {
-                $normalized .= $dom->saveHTML($child);
+                // saveXML (bukan saveHTML) otomatis nutup semua void element (img, br, hr, dst)
+                // jadi valid XML — inilah yang dibutuhkan PhpWord\Shared\Html::addHtml().
+                $normalized .= $dom->saveXML($child);
             }
         }
 
         libxml_clear_errors();
         libxml_use_internal_errors($previousUseInternalErrors);
 
-        return preg_replace('/<(br|hr)([^>]*)>/i', '<$1$2 />', $normalized) ?? $normalized;
+        return $normalized;
     }
 
     private function buildKontenData(array $filter, array $hasil): array
@@ -120,6 +165,7 @@ class LaporanController extends Controller
         });
 
         $terisi = $detailsWithPersen->where('jumlah_responden', '>', 0);
+        $matriksResponden = $this->buildMatriksResponden($hasil, $detailsWithPersen);
 
         return [
             'hasil' => array_merge($hasil, ['details' => $detailsWithPersen]),
@@ -133,7 +179,127 @@ class LaporanController extends Controller
             'unsurTerendah' => $terisi->sortBy('nilai_rata_rata')->first(),
             'rekomendasi' => $this->rekomendasi($terisi->sortBy('nilai_rata_rata')->first()),
             'tanggalCetak' => now()->translatedFormat('d F Y'),
+            'chartImageUrl' => $this->buildChartUrl($detailsWithPersen),
+            'matriksResponden' => $matriksResponden,
         ];
+    }
+
+    private function buildMatriksResponden(array $hasil, $details): array
+    {
+        $surveiIds = collect($hasil['survei_ids'] ?? [])->values();
+        $unsurIds = collect($details)->pluck('unsur_pelayanan_id')->values();
+        $jumlahResponden = $surveiIds->count();
+
+        if ($surveiIds->isEmpty() || $unsurIds->isEmpty()) {
+            return [
+                'rows' => [],
+                'total_per_unsur' => [],
+                'nrr_per_unsur' => [],
+                'bobot_per_unsur' => [],
+                'skm_per_unsur' => [],
+            ];
+        }
+
+        $jawaban = JawabanSurvei::query()
+            ->whereIn('survei_id', $surveiIds)
+            ->whereIn('unsur_pelayanan_id', $unsurIds)
+            ->get(['survei_id', 'unsur_pelayanan_id', 'nilai']);
+
+        $nilaiMap = [];
+
+        foreach ($jawaban as $item) {
+            $nilaiMap[$item->survei_id][$item->unsur_pelayanan_id] = (float) $item->nilai;
+        }
+
+        $rows = [];
+        $totalPerUnsur = array_fill(0, $unsurIds->count(), 0.0);
+
+        foreach ($surveiIds->values() as $index => $surveiId) {
+            $nilaiPerUnsur = [];
+
+            foreach ($unsurIds as $unsurIndex => $unsurId) {
+                $nilai = $nilaiMap[$surveiId][$unsurId] ?? null;
+                $nilaiPerUnsur[] = $nilai;
+
+                if ($nilai !== null) {
+                    $totalPerUnsur[$unsurIndex] += $nilai;
+                }
+            }
+
+            $rows[] = [
+                'nomor' => $index + 1,
+                'nilai' => $nilaiPerUnsur,
+            ];
+        }
+
+        $nrrPerUnsur = [];
+        $bobotPerUnsur = [];
+        $skmPerUnsur = [];
+
+        foreach ($totalPerUnsur as $idx => $total) {
+            $nrr = $jumlahResponden > 0 ? round($total / $jumlahResponden, 3) : 0;
+            $bobot = (float) ($details[$idx]['bobot_nilai'] ?? 0);
+            $skm = round($nrr * $bobot, 3);
+
+            $nrrPerUnsur[] = $nrr;
+            $bobotPerUnsur[] = $bobot;
+            $skmPerUnsur[] = $skm;
+        }
+
+        return [
+            'rows' => $rows,
+            'total_per_unsur' => $totalPerUnsur,
+            'nrr_per_unsur' => $nrrPerUnsur,
+            'bobot_per_unsur' => $bobotPerUnsur,
+            'skm_per_unsur' => $skmPerUnsur,
+        ];
+    }
+
+    private function buildChartUrl($details): ?string
+    {
+        $config = [
+            'type' => 'bar',
+            'data' => [
+                'labels' => $details->pluck('kode')->values()->all(),
+                'datasets' => [[
+                    'label' => 'Nilai Persepsi (%)',
+                    'data' => $details->pluck('nilai_persen')->values()->all(),
+                    'backgroundColor' => '#4472C4',
+                ]],
+            ],
+            'options' => [
+                'plugins' => [
+                    'legend' => ['display' => false],
+                    'datalabels' => [
+                        'anchor' => 'end',
+                        'align' => 'top',
+                        'formatter' => "function(value) { return value + '%'; }",
+                    ],
+                ],
+                'scales' => [
+                    'y' => ['min' => 0, 'max' => 100],
+                ],
+            ],
+        ];
+
+        $chartUrl = 'https://quickchart.io/chart?w=500&h=300&backgroundColor=white&c=' . urlencode(json_encode($config));
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(8)->get($chartUrl);
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            $mime = $response->header('Content-Type') ?: 'image/png';
+
+            return 'data:' . $mime . ';base64,' . base64_encode($response->body());
+        } catch (\Throwable $e) {
+            // Kalau quickchart lagi nggak bisa diakses, laporan tetap jalan tanpa chart
+            report($e);
+
+            return null;
+        }
     }
 
     private function rekomendasi($unsurTerendah): array
@@ -195,5 +361,57 @@ class LaporanController extends Controller
             'bulan' => $request->integer('bulan') ?: now()->month,
             'triwulan' => $request->integer('triwulan') ?: 1,
         ];
+    }
+
+    private function forceThinTableBorders(\PhpOffice\PhpWord\Element\AbstractContainer $container): void
+    {
+        foreach ($container->getElements() as $element) {
+            if ($element instanceof \PhpOffice\PhpWord\Element\Table) {
+                foreach ($element->getRows() as $row) {
+                    foreach ($row->getCells() as $cell) {
+                        $style = $cell->getStyle();
+                        $style->setBorderSize(4);       // 4 = 0.5pt (satuannya per-8 poin)
+                        $style->setBorderColor('000000');
+                    }
+                }
+            }
+
+            if (method_exists($element, 'getElements')) {
+                $this->forceThinTableBorders($element);
+            }
+        }
+    }
+
+    /**
+     * Paksa tabel jadi lebar penuh (100%) — TAPI hanya untuk tabel top-level
+     * (langsung anak dari section). Tabel yang bersarang di dalam sebuah cell
+     * (mis. tabel trik untuk nge-center kotak rumus SKM, atau kotak "IKM x 20")
+     * SENGAJA tidak disentuh, karena kalau ikut dipaksa 100% dia melebar
+     * mengikuti section, bukan mengikuti cell induknya — itu yang bikin
+     * layout-nya berantakan di Word walau di PDF rapi.
+     */
+    private function forceTableFullWidth(\PhpOffice\PhpWord\Element\AbstractContainer $container, bool $isTopLevel = true): void
+    {
+        foreach ($container->getElements() as $element) {
+            if ($element instanceof \PhpOffice\PhpWord\Element\Table) {
+                if ($isTopLevel) {
+                    $style = $element->getStyle();
+
+                    // 5000 = 100% (PhpWord pakai satuan 1/50 persen)
+                    $style->setUnit(\PhpOffice\PhpWord\SimpleType\TblWidth::PERCENT);
+                    $style->setWidth(5000);
+                }
+
+                foreach ($element->getRows() as $row) {
+                    foreach ($row->getCells() as $cell) {
+                        // masuk ke dalam cell buat handle nested table,
+                        // tapi tabel nested TIDAK dipaksa full width lagi
+                        $this->forceTableFullWidth($cell, false);
+                    }
+                }
+            } elseif (method_exists($element, 'getElements')) {
+                $this->forceTableFullWidth($element, $isTopLevel);
+            }
+        }
     }
 }
