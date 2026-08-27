@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PengunaController;
 use App\Http\Controllers\Admin\RespondensController;
 use App\Http\Controllers\Admin\SaranKritiksController;
 use App\Http\Controllers\Admin\UnsurPelayananController;
+use App\Http\Controllers\Admin\HasilIkmController;
 use App\Http\Controllers\Survey\SurveyController;
 
 
@@ -45,11 +46,14 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::patch('/saran-kritik/{saranKritik}/status', [SaranKritiksController::class, 'updateStatus'])->name('admin.kritik-saran.update-status');
     Route::delete('/saran-kritik/{saranKritik}', [SaranKritiksController::class, 'destroy'])->name('admin.kritik-saran.destroy');
 
-    
     Route::get('/unsur-pelayanan', [UnsurPelayananController::class, 'index'])->name('admin.unsur-pelayanan');
     Route::post('/unsur-pelayanan', [UnsurPelayananController::class, 'store'])->name('admin.unsur-pelayanan.store');
     Route::patch('/unsur-pelayanan/{unsurPelayanan}', [UnsurPelayananController::class, 'update'])->name('admin.unsur-pelayanan.update');
     Route::delete('/unsur-pelayanan/{unsurPelayanan}', [UnsurPelayananController::class, 'destroy'])->name('admin.unsur-pelayanan.destroy');
+
+    Route::get('/hasil-ikm', [HasilIkmController::class, 'index'])->name('admin.hasil-ikm');
+    Route::post('/hasil-ikm/hitung-ulang', [HasilIkmController::class, 'hitungUlang'])->name('admin.hasil-ikm.hitung-ulang');
+    Route::get('/hasil-ikm/pdf', [HasilIkmController::class, 'downloadPdf'])->name('admin.hasil-ikm.pdf');
 });
 
 //Survey

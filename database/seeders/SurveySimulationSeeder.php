@@ -15,6 +15,27 @@ class SurveySimulationSeeder extends Seeder
         $unsurIds = DB::table('unsur_pelayanans')->pluck('id')->all();
         $respondens = DB::table('respondens')->get();
         $saran = ['Pelayanan sudah baik dan informatif.', 'Mohon waktu pelayanan dapat dibuat lebih cepat.', 'Fasilitas ruang tunggu perlu ditingkatkan.'];
+        $nilaiPerResponden = [
+            [5, 5, 5, 5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [5, 5, 5, 5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5, 5, 5],
+            [5, 5, 4, 5, 5, 5, 5, 5, 5], [4, 5, 5, 5, 4, 5, 5, 5, 5],
+            [4, 4, 5, 5, 4, 5, 5, 5, 5], [5, 5, 5, 5, 5, 4, 5, 5, 5],
+            [5, 5, 5, 5, 4, 4, 5, 5, 5], [5, 5, 5, 5, 5, 5, 4, 5, 5],
+            [5, 5, 5, 5, 5, 5, 5, 4, 5], [5, 5, 5, 5, 4, 5, 5, 4, 5],
+            [4, 4, 4, 5, 5, 4, 4, 4, 5], [4, 5, 5, 5, 4, 4, 4, 4, 5],
+            [4, 4, 4, 5, 4, 4, 5, 4, 5], [5, 5, 4, 5, 5, 5, 5, 4, 4],
+            [4, 4, 4, 5, 4, 5, 5, 4, 4], [4, 4, 5, 5, 4, 4, 5, 4, 4],
+            [4, 4, 4, 5, 4, 4, 5, 4, 4], [4, 4, 4, 5, 4, 5, 4, 4, 4],
+            [5, 5, 5, 5, 4, 4, 4, 4, 4],
+        ];
+        for ($index = 0; $index < 22; $index++) {
+            $nilaiPerResponden[] = [4, 4, 4, 5, 4, 4, 4, 4, 4];
+        }
 
         foreach ($respondens as $respondenIndex => $responden) {
             $surveiId = DB::table('surveis')->insertGetId([
@@ -28,7 +49,7 @@ class SurveySimulationSeeder extends Seeder
             $jumlahJawaban = 0;
 
             foreach ($unsurIds as $unsurIndex => $unsurId) {
-                $nilai = 3 + (($respondenIndex + $unsurIndex) % 3);
+                $nilai = $nilaiPerResponden[$respondenIndex][$unsurIndex];
                 DB::table('jawaban_surveis')->insert([
                     'survei_id' => $surveiId,
                     'unsur_pelayanan_id' => $unsurId,
