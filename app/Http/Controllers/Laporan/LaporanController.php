@@ -65,52 +65,31 @@ class LaporanController extends Controller
 
     public function exportWord(Request $request)
     {
-        $konten = $request->input('konten') ?: $this->regenerateKonten($request);
+        try {
+            $filter = $this->resolveLaporanFilter($request, collect());
+            $hasil = $this->hitungIkm($filter['tipe'], $filter['tahun'], $filter['bulan'], $filter['triwulan']);
+            $data = $this->buildKontenData($filter, $hasil);
+            $temporaryFile = tempnam(storage_path('app'), 'laporan-word-');
+            $this->fillWordTemplate($temporaryFile, $data);
+            $filename = $this->namaFile($request, 'docx');
 
-        $phpWord = new PhpWord();
-
-        // pastikan margin section standar biar konsisten dgn PDF
-        $section = $phpWord->addSection([
-            'marginLeft'   => 1417, // ~2.5cm dlm twips
-            'marginRight'  => 1417,
-            'marginTop'    => 1417,
-            'marginBottom' => 1417,
-        ]);
-
-        // PhpWord\Shared\Html TIDAK mendukung CSS "page-break-before".
-        // Di Blade, pindah halaman ditandai dengan:
-        //   <div style="page-break-before:always;"></div>
-        // Untuk PDF (DomPDF) ini otomatis jalan karena DomPDF paham CSS.
-        // Untuk Word kita harus pecah HTML manual di titik itu dan
-        // panggil addPageBreak() sendiri.
-        $potongan = preg_split(
-            '/<div\s+style="page-break-before:\s*always;?\s*"\s*>\s*<\/div>/i',
-            $konten
-        );
-
-        foreach ($potongan as $index => $bagian) {
-            if ($index > 0) {
-                $section->addPageBreak();
+            $archive = new \ZipArchive();
+            if ($archive->open($temporaryFile) !== true || $archive->locateName('word/document.xml') === false) {
+                @unlink($temporaryFile);
+                throw new \RuntimeException('Template Word menghasilkan dokumen yang tidak valid.');
             }
+            $archive->close();
 
-            if (trim($bagian) === '') {
-                continue;
-            }
-
-            PhpWordHtml::addHtml($section, $this->normalizeWordHtml($bagian), false, false);
+            return response()->download($temporaryFile, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ])->deleteFileAfterSend(true);
+            
+        } catch (\Throwable $e) {
+            \Log::error('Export Word failed: ' . $e->getMessage());
+            
+            // Fallback: download PDF jika Word gagal
+            return redirect()->back()->with('error', 'Export Word gagal. Silakan coba export PDF.');
         }
-
-        $this->forceTableFullWidth($section);   // <-- fix "offside", sekarang cuma tabel top-level
-        $this->forceThinTableBorders($section);
-
-        $filename = $this->namaFile($request, 'docx');
-
-        return response()->streamDownload(function () use ($phpWord) {
-            $writer = IOFactory::createWriter($phpWord, 'Word2007');
-            $writer->save('php://output');
-        }, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ]);
     }
 
     public function exportExcel(Request $request)
@@ -129,31 +108,317 @@ class LaporanController extends Controller
         return view('laporan.content', $this->buildKontenData($filter, $hasil))->render();
     }
 
+    private function fillWordTemplate(string $outputPath, array $data): void
+    {
+        $templatePath = storage_path('app/templates/Template_Laporan_SKM.docx');
+
+        if (! is_file($templatePath)) {
+            throw new \RuntimeException('Template Word tidak ditemukan.');
+        }
+
+        copy($templatePath, $outputPath);
+        $archive = new \ZipArchive();
+
+        if ($archive->open($outputPath) !== true) {
+            throw new \RuntimeException('Template Word tidak dapat dibaca.');
+        }
+
+        $xml = $archive->getFromName('word/document.xml');
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom->loadXML($xml);
+        $xpath = new \DOMXPath($dom);
+        $xpath->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+
+        $this->replaceWordLabeledParagraph($xpath, 'Tujuan', 'Dalam rangka meningkatkan mutu pelayanan publik, sebagai acuan mengukur tingkat kepuasan masyarakat sebagai pengguna layanan dan meningkatkan kualitas penyelenggaraan pelayanan publik yang dilakukan oleh unit pelayanan instansi pemerintah dalam melaksanakan pelayanan kepada masyarakat.');
+        $this->replaceWordLabeledParagraph($xpath, 'Periode', $data['labelPeriode']);
+        $this->replaceWordLabeledParagraph($xpath, 'Tanggal', ($data['hasil']['tanggal_mulai'] ?? '-') . ' s.d. ' . ($data['hasil']['tanggal_selesai'] ?? '-'));
+        $this->replaceWordLabeledParagraph($xpath, 'Survei', 'Per Responden Per Parameter Survei');
+        $this->replaceWordLabeledParagraph($xpath, 'Metode', 'Peraturan Menteri Pendayagunaan Aparatur Negara dan Reformasi Birokrasi Nomor 14 Tahun 2017 tentang Pedoman Penyusunan Survei Kepuasan Masyarakat Unit Pelayanan Instansi Pemerintah.');
+        $this->replaceWordLabeledParagraph($xpath, 'Jumlah Responden', number_format($data['hasil']['jumlah_responden']) . ' orang');
+        $this->replaceWordLabeledParagraph($xpath, 'Jumlah Parameter', count($data['hasil']['details']) . ' Parameter');
+        $this->forceWordPageBreakBefore($xpath, 'PENGOLAHAN INDEKS KEPUASAN PERRESPONDEN');
+
+        $rows = $xpath->query('//w:tr');
+        $matrixStart = null;
+
+        foreach ($rows as $index => $row) {
+            $text = $this->wordNodeText($xpath, $row);
+            if (str_contains($text, 'No. Urut Responden')) {
+                $matrixStart = $index + 1;
+                break;
+            }
+        }
+
+        if ($matrixStart !== null) {
+            $matrixRows = $data['matriksResponden']['rows'];
+            $templateRows = [];
+            $summaryRow = null;
+
+            for ($index = $matrixStart; $index < $rows->length; $index++) {
+                $row = $rows->item($index);
+                $text = $this->wordNodeText($xpath, $row);
+                if (str_contains($text, 'Nilai Per Parameter') || str_contains($text, 'Nilai Rer') || str_contains($text, 'Nilai Rata-rata')) {
+                    $summaryRow = $row;
+                    break;
+                }
+
+                $templateRows[] = $row;
+            }
+
+            if ($summaryRow && count($matrixRows) > count($templateRows)) {
+                $lastRow = end($templateRows);
+                while (count($templateRows) < count($matrixRows) && $lastRow) {
+                    $newRow = $lastRow->cloneNode(true);
+                    $summaryRow->parentNode->insertBefore($newRow, $summaryRow);
+                    $templateRows[] = $newRow;
+                }
+            }
+
+            foreach ($matrixRows as $index => $matrixRow) {
+                $row = $templateRows[$index] ?? null;
+                if (! $row) {
+                    continue;
+                }
+
+                $cells = $xpath->query('./w:tc', $row);
+                $this->setWordCellText($xpath, $cells->item(0), $matrixRow['nomor'] . '.');
+                foreach ($matrixRow['nilai'] as $cellIndex => $value) {
+                    $this->setWordCellText($xpath, $cells->item($cellIndex + 1), $this->formatTemplateValue($value));
+                }
+            }
+
+            foreach (array_slice($templateRows, count($matrixRows)) as $row) {
+                $row->parentNode->removeChild($row);
+            }
+        }
+
+        if ($matrixStart !== null) {
+            $countRow = $rows->item($matrixStart - 2);
+            $cells = $countRow ? $xpath->query('./w:tc', $countRow) : null;
+            $this->setWordCellText($xpath, $cells?->item(1), (string) $data['hasil']['jumlah_responden']);
+        }
+
+        foreach ($xpath->query('//w:tr') as $row) {
+            $text = $this->wordNodeText($xpath, $row);
+            $values = null;
+
+            if (str_contains($text, 'Nilai Per Parameter') || str_contains($text, 'Nilai Rer Parameter')) {
+                $values = $data['matriksResponden']['total_per_unsur'];
+            } elseif (str_contains($text, 'Nilai Rata-rata')) {
+                $values = $data['matriksResponden']['nrr_per_unsur'];
+            } elseif (trim($text) === 'BOBOT') {
+                $values = $data['matriksResponden']['bobot_per_unsur'];
+            } elseif (str_contains($text, 'Survey Kepuasan')) {
+                $values = $data['matriksResponden']['skm_per_unsur'];
+            }
+
+            if ($values !== null) {
+                $cells = $xpath->query('./w:tc', $row);
+                foreach ($values as $index => $value) {
+                    $this->setWordCellText($xpath, $cells->item($index + 1), number_format((float) $value, 3, '.', ''));
+                }
+            } elseif (str_contains($text, 'Indeks Kepuasan Masyarakat')) {
+                $cells = $xpath->query('./w:tc', $row);
+                $this->setWordCellText($xpath, $cells->item(1), number_format((float) $data['hasil']['nilai_ikm'], 2, '.', ''));
+            } elseif (str_contains($text, 'MUTU PELAYANAN')) {
+                $cells = $xpath->query('./w:tc', $row);
+                $this->setWordCellText($xpath, $cells->item(1), $data['hasil']['mutu_pelayanan']);
+            } elseif (str_contains($text, 'Kategori Penilaian Kepuasan')) {
+                $cells = $xpath->query('./w:tc', $row);
+                $this->setWordCellText($xpath, $cells->item(1), $data['hasil']['kinerja_pelayanan']);
+            }
+        }
+
+        $afterConclusion = false;
+        foreach ($xpath->query('//w:p') as $paragraph) {
+            $text = $this->wordNodeText($xpath, $paragraph);
+            if (str_contains(strtoupper($text), 'KESIMPULAN')) {
+                $afterConclusion = true;
+                continue;
+            }
+
+            if ($afterConclusion && in_array(strtolower($text), ['sangat baik', 'baik', 'cukup baik', 'kurang baik'], true)) {
+                $this->setWordParagraphText($xpath, $paragraph, strtoupper($data['hasil']['kinerja_pelayanan']));
+            }
+        }
+
+        $archive->addFromString('word/document.xml', $dom->saveXML());
+        $archive->close();
+    }
+
+    private function replaceWordParagraph(\DOMXPath $xpath, string $needle, string $replacement): void
+    {
+        foreach ($xpath->query('//w:p') as $paragraph) {
+            if (str_contains($this->wordNodeText($xpath, $paragraph), $needle)) {
+                $texts = $xpath->query('.//w:t', $paragraph);
+                if ($texts->length > 0) {
+                    $texts->item(0)->textContent = $replacement;
+                    for ($index = 1; $index < $texts->length; $index++) {
+                        $texts->item($index)->textContent = '';
+                    }
+                }
+                return;
+            }
+        }
+    }
+
+    private function replaceWordLabeledParagraph(\DOMXPath $xpath, string $label, string $replacement): void
+    {
+        foreach ($xpath->query('//w:p') as $paragraph) {
+            $textNodes = $xpath->query('.//w:t', $paragraph);
+            $paragraphText = $this->wordNodeText($xpath, $paragraph);
+
+            if (! str_starts_with(str_replace(' ', '', $paragraphText), str_replace(' ', '', $label) . ':')) {
+                continue;
+            }
+
+            $colonIndex = null;
+            foreach ($textNodes as $index => $textNode) {
+                if (str_contains($textNode->textContent, ':')) {
+                    $colonIndex = $index;
+                    break;
+                }
+            }
+
+            if ($colonIndex === null || ! isset($textNodes[$colonIndex + 1])) {
+                return;
+            }
+
+            $textNodes->item($colonIndex + 1)->textContent = ' ' . $replacement;
+            for ($index = $colonIndex + 2; $index < $textNodes->length; $index++) {
+                $textNodes->item($index)->textContent = '';
+            }
+
+            return;
+        }
+    }
+
+    private function forceWordPageBreakBefore(\DOMXPath $xpath, string $needle): void
+    {
+        $namespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+        foreach ($xpath->query('//w:p') as $paragraph) {
+            if (! str_contains($this->wordNodeText($xpath, $paragraph), $needle)) {
+                continue;
+            }
+
+            $properties = $xpath->query('./w:pPr', $paragraph)->item(0);
+            if (! $properties) {
+                $properties = $paragraph->ownerDocument->createElementNS($namespace, 'w:pPr');
+                $paragraph->insertBefore($properties, $paragraph->firstChild);
+            }
+
+            if ($xpath->query('./w:pageBreakBefore', $properties)->length === 0) {
+                $properties->appendChild($paragraph->ownerDocument->createElementNS($namespace, 'w:pageBreakBefore'));
+            }
+
+            return;
+        }
+    }
+
+    private function wordNodeText(\DOMXPath $xpath, \DOMNode $node): string
+    {
+        $text = '';
+        foreach ($xpath->query('.//w:t', $node) as $textNode) {
+            $text .= $textNode->nodeValue;
+        }
+
+        return trim($text);
+    }
+
+    private function setWordCellText(\DOMXPath $xpath, ?\DOMNode $cell, string $value): void
+    {
+        if (! $cell) {
+            return;
+        }
+
+        $texts = $xpath->query('.//w:t', $cell);
+        if ($texts->length === 0) {
+            return;
+        }
+
+        $texts->item(0)->textContent = $value;
+        for ($index = 1; $index < $texts->length; $index++) {
+            $texts->item($index)->textContent = '';
+        }
+    }
+
+    private function setWordParagraphText(\DOMXPath $xpath, \DOMNode $paragraph, string $value): void
+    {
+        $texts = $xpath->query('.//w:t', $paragraph);
+        if ($texts->length === 0) {
+            return;
+        }
+
+        $texts->item(0)->textContent = $value;
+        for ($index = 1; $index < $texts->length; $index++) {
+            $texts->item($index)->textContent = '';
+        }
+    }
+
+    private function removeWordNumbering(\DOMXPath $xpath, \DOMNode $row): void
+    {
+        $firstCell = $xpath->query('./w:tc', $row)->item(0);
+
+        if (! $firstCell) {
+            return;
+        }
+
+        foreach ($xpath->query('.//w:numPr', $firstCell) as $numbering) {
+            $numbering->parentNode?->removeChild($numbering);
+        }
+    }
+
+    private function formatTemplateValue($value): string
+    {
+        if ($value === null) {
+            return '-';
+        }
+
+        return ((float) $value === (float) (int) $value) ? (string) (int) $value : number_format((float) $value, 3, '.', '');
+    }
+
     private function normalizeWordHtml(string $konten): string
     {
+        $konten = preg_replace('/<!--\[if.*?\]>.*?<!\[endif\]-->/is', '', $konten);
+
         $dom = new \DOMDocument('1.0', 'UTF-8');
-        $previousUseInternalErrors = libxml_use_internal_errors(true);
-
-        $dom->loadHTML(
-            '<?xml encoding="UTF-8"><!DOCTYPE html><html><body><div id="word-content">' . $konten . '</div></body></html>',
-            LIBXML_HTML_NODEFDTD
-        );
-
+        $previousErrors = libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="UTF-8"><!DOCTYPE html><html><body><div id="word-content">' . $konten . '</div></body></html>', LIBXML_HTML_NODEFDTD);
         $container = $dom->getElementById('word-content');
         $normalized = '';
 
         if ($container) {
             foreach ($container->childNodes as $child) {
-                // saveXML (bukan saveHTML) otomatis nutup semua void element (img, br, hr, dst)
-                // jadi valid XML — inilah yang dibutuhkan PhpWord\Shared\Html::addHtml().
                 $normalized .= $dom->saveXML($child);
             }
         }
 
         libxml_clear_errors();
-        libxml_use_internal_errors($previousUseInternalErrors);
+        libxml_use_internal_errors($previousErrors);
 
-        return $normalized;
+        return $normalized ?: $konten;
+    }
+
+    private function prepareWordImages(string $konten, array &$temporaryImages): string
+    {
+        return preg_replace_callback(
+            '/src=["\']data:(image\/(?:png|jpe?g|gif));base64,([^"\']+)["\']/i',
+            function (array $matches) use (&$temporaryImages): string {
+                $extension = strtolower($matches[1]) === 'image/gif' ? 'gif' : (strtolower($matches[1]) === 'image/png' ? 'png' : 'jpg');
+                $temporaryImage = tempnam(sys_get_temp_dir(), 'eskm-word-') . '.' . $extension;
+                $image = base64_decode($matches[2], true);
+
+                if ($image === false || file_put_contents($temporaryImage, $image) === false) {
+                    return $matches[0];
+                }
+
+                $temporaryImages[] = $temporaryImage;
+
+                return 'src="' . str_replace('\\', '/', $temporaryImage) . '"';
+            },
+            $konten
+        ) ?? $konten;
     }
 
     private function buildKontenData(array $filter, array $hasil): array
@@ -414,4 +679,6 @@ class LaporanController extends Controller
             }
         }
     }
+
+    
 }
