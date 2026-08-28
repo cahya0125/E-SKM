@@ -7,7 +7,7 @@
     ])->filter(fn (array $alert) => filled($alert['message']))->values();
 @endphp
 
-<div x-data="alertCenter(@js($flashAlerts))" x-init="init()" x-on:app-alert.window="show($event.detail)" x-on:app-confirm.window="confirm($event.detail)" class="pointer-events-none fixed inset-0 z-50" aria-live="polite">
+<div x-data="alertCenter(@js($flashAlerts))" x-init="init()" x-on:app-alert.window="show($event.detail)" x-on:app-confirm.window="confirm($event.detail)" x-cloak class="pointer-events-none fixed inset-0 z-50" aria-live="polite">
     <div class="pointer-events-none absolute inset-x-4 top-20 flex flex-col items-end gap-3 sm:inset-x-auto sm:right-6 sm:w-[min(24rem,calc(100vw-3rem))]">
     <template x-for="alert in alerts" :key="alert.id">
         <div x-show="alert.visible" x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="translate-y-2 opacity-0 sm:translate-x-4 sm:translate-y-0" x-transition:enter-end="translate-x-0 translate-y-0 opacity-100" x-transition:leave="transition duration-200 ease-in" x-transition:leave-start="translate-x-0 opacity-100" x-transition:leave-end="translate-x-4 opacity-0" class="pointer-events-auto flex w-full items-start gap-3 rounded-xl border bg-white p-4 shadow-lg" :class="styles[alert.type].border" role="alert">

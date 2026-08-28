@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('hasil_ikms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('priode_survei_id')->constrained('priode_surveis')->onDelete('cascade');
+            $table->foreignId('survei_id')->constrained('surveis')->onDelete('cascade');
             $table->double('nilai_skm');
             $table->double('nilai_ikm');
             $table->enum('mutu_pelayanan', ['A', 'B', 'C', 'D'])->default('D');  

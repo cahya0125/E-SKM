@@ -17,9 +17,7 @@ class RespondensController extends Controller
                 $join->on('surveis.responden_id', '=', 'respondens.id')
                     ->whereRaw('surveis.id = (select max(id) from surveis as latest_survei where latest_survei.responden_id = respondens.id)');
             })
-            ->leftJoin('jenis_layanans', 'jenis_layanans.id', '=', 'surveis.jenis_layanan_id')
-            ->leftJoin('priode_surveis', 'priode_surveis.id', '=', 'surveis.priode_survei_id')
-            ->select('respondens.*', 'surveis.id as survei_id', 'jenis_layanans.nama_layanan', 'priode_surveis.nama_priode', 'surveis.created_at as survei_created_at')
+            ->select('respondens.*', 'surveis.id as survei_id', 'surveis.jenis_layanan', 'surveis.created_at as survei_created_at')
             ->latest('respondens.id')->get()->map(fn ($responden) => $this->present($responden))->values();
 
         if (request()->expectsJson()) {
@@ -42,6 +40,13 @@ class RespondensController extends Controller
 
         $survei = DB::table('surveis')->where('responden_id', $respondens->id)->latest('id')->first();
         if ($survei) {
+            if ($request->filled('jenis_layanan')) {
+                DB::table('surveis')->where('id', $survei->id)->update([
+                    'jenis_layanan' => $request->input('jenis_layanan'),
+                    'updated_at' => now(),
+                ]);
+            }
+
             foreach ($request->input('ratings', []) as $rating) {
                 $unsurId = DB::table('unsur_pelayanans')->where('nama_unsur', $rating['label'] ?? '')->value('id');
                 if ($unsurId) {
@@ -112,8 +117,7 @@ class RespondensController extends Controller
             'pendidikan' => $responden->pendidikan,
             'pekerjaan' => $responden->pekerjaan,
             'noHp' => $responden->no_hp,
-            'jenisLayanan' => $responden->nama_layanan ?? '-',
-            'periode' => $responden->nama_priode ?? '-',
+            'jenisLayanan' => $responden->jenis_layanan ?? '-',
             'tanggal' => $responden->survei_created_at ? date('d M Y', strtotime($responden->survei_created_at)) : '-',
             'survei' => $responden->survei_id ? 'Survei #'.str_pad((string) $responden->survei_id, 4, '0', STR_PAD_LEFT) : 'Belum ada survei',
             'ikm' => $averageRating ? number_format($averageRating * 20, 2, ',', '.') : '-',
