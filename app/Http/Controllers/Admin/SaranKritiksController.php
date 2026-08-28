@@ -16,7 +16,7 @@ class SaranKritiksController extends Controller
             ->get()
             ->map(fn (SaranKritik $item) => $this->transform($item));
 
-        return view('admin.sarankritik', ['items' => $items]);
+        return view('admin.saranKritik', ['items' => $items]);
     }
 
     public function updateStatus(Request $request, SaranKritik $saranKritik)
