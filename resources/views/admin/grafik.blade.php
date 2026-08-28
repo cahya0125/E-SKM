@@ -77,8 +77,10 @@ const valueLabels = {
                     context.fillText(value, properties.x, properties.y - 8);
                 } else {
                     context.textAlign = 'center';
-                    context.textBaseline = 'bottom';
-                    context.fillText(value, properties.x, Math.min(properties.y, properties.base) - 6);
+                    const labelAtTop = properties.y <= chart.chartArea.top + 10;
+                    context.fillStyle = labelAtTop ? '#fff' : navy;
+                    context.textBaseline = labelAtTop ? 'top' : 'bottom';
+                    context.fillText(value, properties.x, labelAtTop ? chart.chartArea.top + 8 : Math.min(properties.y, properties.base) - 6);
                 }
             });
         });
@@ -102,7 +104,7 @@ new Chart(document.getElementById('trendChart'), {
 new Chart(document.getElementById('elementChart'), {
     type: 'bar',
     data: { labels: grafikData.elements.labels.map((_, index) => `U${index + 1}`), datasets: [{ data: grafikData.elements.values, backgroundColor: navy, borderRadius: 3, barPercentage: 0.72, categoryPercentage: 0.8 }] },
-    options: { maintainAspectRatio: false, layout: { padding: { top: 14 } }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: (items) => grafikData.elements.labels[items[0].dataIndex] } } }, scales: { x: sharedScales.x, y: { ...sharedScales.y, min: 60, max: Math.max(100, Math.ceil(Math.max(...grafikData.elements.values, 100) / 10) * 10 + 10), ticks: { ...sharedScales.y.ticks, stepSize: 10 } } } },
+    options: { maintainAspectRatio: false, layout: { padding: { top: 14 } }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: (items) => grafikData.elements.labels[items[0].dataIndex] } } }, scales: { x: sharedScales.x, y: { ...sharedScales.y, min: 60, max: 100, ticks: { ...sharedScales.y.ticks, stepSize: 10 } } } },
 });
 
 new Chart(document.getElementById('genderChart'), {
