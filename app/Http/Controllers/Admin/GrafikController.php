@@ -17,9 +17,9 @@ class GrafikController extends Controller
             ->map(fn ($items, $year) => ['year' => $year, 'value' => round((float) $items->avg('nilai_ikm'), 2)])
             ->values();
 
-        $elements = DB::table('hasil_ikm_details')
-            ->join('unsur_pelayanans', 'unsur_pelayanans.id', '=', 'hasil_ikm_details.unsur_pelayanan_id')
-            ->select('unsur_pelayanans.nama_unsur', DB::raw('AVG(hasil_ikm_details.nilai_rata_rata * 20) as nilai'))
+        $elements = DB::table('jawaban_surveis')
+            ->join('unsur_pelayanans', 'unsur_pelayanans.id', '=', 'jawaban_surveis.unsur_pelayanan_id')
+            ->select('unsur_pelayanans.nama_unsur', DB::raw('AVG(jawaban_surveis.nilai * 20) as nilai'))
             ->groupBy('unsur_pelayanans.id', 'unsur_pelayanans.nama_unsur')
             ->orderBy('unsur_pelayanans.id')->get();
 
