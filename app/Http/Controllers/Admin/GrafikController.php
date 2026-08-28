@@ -10,10 +10,18 @@ class GrafikController extends Controller
     public function index()
     {
         $trend = DB::table('hasil_ikms')
-            ->join('priode_surveis', 'priode_surveis.id', '=', 'hasil_ikms.priode_survei_id')
-            ->orderBy('priode_surveis.tanggal_mulai')
-            ->get(['priode_surveis.tanggal_mulai', 'hasil_ikms.nilai_ikm'])
-            ->groupBy(fn ($item) => substr($item->tanggal_mulai, 0, 4))
+            ->leftJoin('surveis', 'surveis.id', '=', 'hasil_ikms.survei_id')
+            ->leftJoin('priode_surveis', 'priode_surveis.id', '=', 'hasil_ikms.priode_survei_id')
+            ->where(function ($query) {
+                $query->whereNotNull('surveis.created_at')
+                    ->orWhereNotNull('priode_surveis.tanggal_mulai');
+            })
+            ->orderByRaw('COALESCE(surveis.created_at, priode_surveis.tanggal_mulai)')
+            ->get([
+                DB::raw('COALESCE(surveis.created_at, priode_surveis.tanggal_mulai) as tanggal'),
+                'hasil_ikms.nilai_ikm',
+            ])
+            ->groupBy(fn ($item) => substr($item->tanggal, 0, 4))
             ->map(fn ($items, $year) => ['year' => $year, 'value' => round((float) $items->avg('nilai_ikm'), 2)])
             ->values();
 
