@@ -1,8 +1,8 @@
 @php
     $currentPage = request()->routeIs('admin.dashboard')
         ? 'dashboard'
-        : (request()->routeIs('admin.users') ? 'pengguna'
-        : (request()->routeIs('admin.respondens') ? 'responden'
+        : (request()->routeIs('admin.users') ? 'users'
+        : (request()->routeIs('admin.respondens') ? 'respondens'
         : (request()->routeIs('admin.kritik-saran') ? 'kritik-saran'
         : (request()->routeIs('admin.unsur-pelayanan') ? 'unsur-pelayanan'
         : (request()->routeIs('admin.hasil-ikm') ? 'hasil-ikm'
@@ -30,14 +30,14 @@
 
     {{-- ================= MENU NAVIGASI ================= --}}
     @php
-        $hiddenForPetugas = ['pengguna'];
+        $hiddenForPetugas = ['users'];
 
         $menus = [
             ['dashboard', 'Dashboard', 'fa-gauge-high'],
-            ['pengguna', 'Pengguna', 'fa-users'],
+            ['users', 'Pengguna', 'fa-users'],
             // ['periode-survei', 'Periode Survei', 'fa-calendar-days'],
             ['unsur-pelayanan', 'Unsur Pelayanan', 'fa-list-check'],
-            ['responden', 'Responden', 'fa-user-group'],
+            ['respondens', 'Responden', 'fa-user-group'],
             // ['hasil-survei', 'Hasil Survei', 'fa-square-poll-vertical'],
             ['kritik-saran', 'Kritik & Saran', 'fa-comments'],
             ['hasil-ikm', 'Hasil IKM', 'fa-chart-line'],
@@ -52,25 +52,8 @@
                 @continue
             @endif
 
-            @php
-        $hiddenForPetugas = ['pengguna'];
-
-        $menus = [
-            ['dashboard', 'Dashboard', 'fa-gauge-high'],
-            ['pengguna', 'Pengguna', 'fa-users'],
-            // ['periode-survei', 'Periode Survei', 'fa-calendar-days'],
-            ['unsur-pelayanan', 'Unsur Pelayanan', 'fa-list-check'],
-            ['responden', 'Responden', 'fa-user-group'],
-            // ['hasil-survei', 'Hasil Survei', 'fa-square-poll-vertical'],
-            ['kritik-saran', 'Kritik & Saran', 'fa-comments'],
-            ['hasil-ikm', 'Hasil IKM', 'fa-chart-line'],
-            ['grafik', 'Grafik', 'fa-chart-column'],
-            ['laporan', 'Laporan', 'fa-file-lines'],
-        ];
-    @endphp
-
             <a
-                href="{{ $href }}"
+                href="{{ route('admin.' . $slug) }}"
                 class="flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-2 text-xs transition-colors duration-150 hover:bg-white/10 hover:text-white lg:justify-start {{ $currentPage === $slug ? 'bg-[#c43b2d] font-semibold text-white' : '' }}"
             >
                 <i class="fa-solid {{ $icon }} grid w-4 place-content-center text-sm"></i>
