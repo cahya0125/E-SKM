@@ -34,6 +34,9 @@
 								? 'hasil-ikm'
 								: request('page', 'dashboard'))))));
 
+		if (request()->routeIs('admin.grafik')) {
+			$currentPage = 'grafik';
+		}
 		$currentPageTitle = $pageTitles[$currentPage] ?? $pageTitles['dashboard'];
 	@endphp
 
