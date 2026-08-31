@@ -14,7 +14,7 @@
                 :class="activeTab === tab.key
                     ? 'bg-[#102342] text-white'
                     : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
-                @click="activeTab = tab.key"
+                @click="activeTab = tab.key; page = 1"
             >
                 <span x-text="tab.label"></span>
                 <span
@@ -28,7 +28,7 @@
 
     {{-- ================= GRID CARD ================= --}}
     <section class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        <template x-for="item in filteredItems" :key="item.id">
+        <template x-for="item in paginatedItems" :key="item.id">
             <article class="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 {{-- Header --}}
                 <div class="flex items-start justify-between gap-2">
@@ -80,6 +80,42 @@
             Belum ada data kritik & saran untuk kategori ini.
         </p>
     </section>
+
+    <div class="flex flex-col items-center justify-between gap-3 border-t border-slate-100 pt-3 text-[10px] text-slate-400 sm:flex-row" x-show="totalPages > 1">
+        <span x-text="`Menampilkan ${paginatedItems.length} dari ${filteredItems.length} data`"></span>
+        <div class="flex items-center gap-1">
+            <button
+                type="button"
+                class="grid h-7 w-7 place-content-center rounded-md border border-slate-200 text-slate-400 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                :disabled="page === 1"
+                @click="page = Math.max(1, page - 1)"
+                aria-label="Halaman sebelumnya"
+            >
+                <i class="fa-solid fa-chevron-left text-[10px]" aria-hidden="true"></i>
+            </button>
+
+            <template x-for="(item, idx) in pageList" :key="idx">
+                <button
+                    type="button"
+                    class="grid h-7 w-7 place-content-center rounded-md text-[10px] font-semibold transition"
+                    :class="item === page ? 'bg-[#102342] text-white' : (item === '...' ? 'cursor-default text-slate-400' : 'border border-slate-200 text-slate-500 hover:bg-slate-50')"
+                    :disabled="item === '...'"
+                    @click="item !== '...' && (page = item)"
+                    x-text="item"
+                ></button>
+            </template>
+
+            <button
+                type="button"
+                class="grid h-7 w-7 place-content-center rounded-md border border-slate-200 text-slate-400 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                :disabled="page === totalPages"
+                @click="page = Math.min(totalPages, page + 1)"
+                aria-label="Halaman berikutnya"
+            >
+                <i class="fa-solid fa-chevron-right text-[10px]" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
 
     {{-- ================= MODAL DETAIL ================= --}}
     <div
@@ -158,6 +194,8 @@
             activeTab: 'semua',
             detailOpen: false,
             detailItem: null,
+            page: 1,
+            perPage: 9,
 
             get tabs() {
                 return [
@@ -169,8 +207,46 @@
             },
 
             get filteredItems() {
-                if (this.activeTab === 'semua') return this.items;
-                return this.items.filter(item => item.status === this.activeTab);
+                const items = this.activeTab === 'semua'
+                    ? this.items
+                    : this.items.filter(item => item.status === this.activeTab);
+
+                const statusPriority = { baru: 1, ditinjau: 2, selesai: 3 };
+
+                return [...items].sort((a, b) => {
+                    const statusDiff = (statusPriority[a.status] ?? 99) - (statusPriority[b.status] ?? 99);
+                    if (statusDiff !== 0) return statusDiff;
+                    return (b.id ?? 0) - (a.id ?? 0);
+                });
+            },
+
+            get totalPages() {
+                return Math.max(1, Math.ceil(this.filteredItems.length / this.perPage));
+            },
+
+            get paginatedItems() {
+                if (this.page > this.totalPages) this.page = this.totalPages;
+                const start = (this.page - 1) * this.perPage;
+                return this.filteredItems.slice(start, start + this.perPage);
+            },
+
+            get pageList() {
+                const total = this.totalPages;
+                const current = Math.min(this.page, total);
+                const delta = 1;
+                const range = [];
+
+                for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+                    range.push(i);
+                }
+
+                if (current - delta > 2) range.unshift('...');
+                if (current + delta < total - 1) range.push('...');
+
+                range.unshift(1);
+                if (total > 1) range.push(total);
+
+                return range;
             },
 
             statusLabel(status) {

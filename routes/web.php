@@ -10,7 +10,7 @@ use App\Http\Controllers\Admin\SaranKritiksController;
 use App\Http\Controllers\Admin\UnsurPelayananController;
 use App\Http\Controllers\Admin\HasilIkmController;
 use App\Http\Controllers\Laporan\LaporanController;
-
+use App\Http\Controllers\Survey\SurveyController;
 
 // ============================= 
 //         Survey Masyarakat
@@ -60,3 +60,30 @@ Route::middleware('admin')->prefix('admin')->group(function () {
     Route::post('/laporan/word', [LaporanController::class, 'exportWord'])->name('admin.laporan.word');
     Route::post('/laporan/excel', [LaporanController::class, 'exportExcel'])->name('admin.laporan.excel');
 });
+
+//Survey
+Route::prefix('survei')->name('survey.')->controller(SurveyController::class)->group(function () {
+    Route::get('/mulai', 'mulai')->name('mulai');                    // halaman "Mulai Survei"
+    Route::post('/mulai', 'start')->name('start');
+    Route::get('/responden', 'responden')->name('responden');
+    Route::post('/responden', 'saveResponden')->name('responden.save');
+    Route::get('/penilaian', 'penilaian')->name('penilaian');
+    Route::post('/penilaian', 'savePenilaian')->name('penilaian.save');
+    Route::get('/saran', 'saran')->name('saran');
+    Route::post('/saran', 'saveSaran')->name('saran.save');
+    Route::get('/review', 'review')->name('review');
+    Route::post('/kirim', 'submit')->name('submit');
+    Route::get('/selesai', 'selesai')->name('selesai');
+});
+
+// ============ TESTING HALAMAN ERROR (hanya environment local) ============
+if (app()->environment(['local', 'development'])) {
+    Route::prefix('test-error')->group(function () {
+        Route::get('/401', fn () => abort(401));
+        Route::get('/403', fn () => abort(403));
+        Route::get('/404', fn () => abort(404));
+        Route::get('/419', fn () => abort(419));
+        Route::get('/429', fn () => abort(429));
+        Route::get('/500', fn () => abort(500));
+    });
+}

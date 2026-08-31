@@ -8,16 +8,9 @@ class Respondens extends Model
 {
     protected $table = 'respondens';
 
-    protected $fillable = [
-        'nama',
-        'jenis_kelamin',
-        'usia',
-        'pendidikan',
-        'pekerjaan',
-        'no_hp',
-    ];
+    protected $fillable = ['nama', 'jenis_kelamin', 'usia', 'pendidikan', 'pekerjaan', 'no_hp'];
 
-    public function survei()
+    public function surveis()
     {
         return $this->hasMany(Survei::class, 'responden_id');
     }

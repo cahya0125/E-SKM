@@ -37,7 +37,7 @@
             </p>
 
             <div class="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
-                <a href="#"
+                <a href="{{ route('survey.mulai') }}"
                     class="rounded-lg bg-[#dc4b3f] px-6 py-3 text-center text-sm font-semibold text-white shadow hover:bg-[#c9392e] transition">
                     Mulai Survei &rarr;
                 </a>
@@ -162,7 +162,7 @@
             @endforeach
         </div>
 
-        <a href="#"
+        <a href="{{ route('survey.mulai') }}"
             class="mt-10 inline-block rounded-lg bg-[#dc4b3f] px-6 py-3 text-sm font-semibold text-white shadow hover:bg-[#c9392e] transition sm:mt-14 sm:px-8">
             Mulai Survei Sekarang
         </a>

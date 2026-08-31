@@ -9,6 +9,9 @@ class HomeController extends Controller
 {
     public function index()
     {
+
+        session()->forget('survey');
+
         return view('survey.index', [
             'totalResponden' => 1248,
             'nilaiIkm'       => 87.42,
