@@ -20,13 +20,19 @@
 			'laporan' => 'Laporan',
 		];
 
-		$currentPage = request()->routeIs('admin.users')
-			? 'pengguna'
-			: (request()->routeIs('admin.respondens')
-				? 'responden'
-				: (request()->routeIs('admin.kritik-saran') ? 'kritik-saran'
-				: (request()->routeIs('admin.unsur-pelayanan') ? 'unsur-pelayanan' 
-				: request('page', 'dashboard'))));
+		$currentPage = request()->routeIs('admin.dashboard')
+			? request('page', 'dashboard')
+			: (request()->routeIs('admin.users')
+				? 'pengguna'
+				: (request()->routeIs('admin.respondens')
+					? 'responden'
+					: (request()->routeIs('admin.kritik-saran')
+						? 'kritik-saran'
+						: (request()->routeIs('admin.unsur-pelayanan')
+							? 'unsur-pelayanan'
+							: (request()->routeIs('admin.hasil-ikm')
+								? 'hasil-ikm'
+								: request('page', 'dashboard'))))));
 
 		$currentPageTitle = $pageTitles[$currentPage] ?? $pageTitles['dashboard'];
 	@endphp

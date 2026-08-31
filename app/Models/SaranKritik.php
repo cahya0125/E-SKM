@@ -8,11 +8,7 @@ class SaranKritik extends Model
 {
     protected $table = 'saran_kritiks';
 
-    protected $fillable = [
-        'survei_id',
-        'saran',
-        'status',
-    ];
+    protected $fillable = ['survei_id', 'saran'];
 
     public function survei()
     {
