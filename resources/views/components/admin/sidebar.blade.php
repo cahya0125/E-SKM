@@ -8,7 +8,7 @@
         : (request()->routeIs('admin.hasil-ikm') ? 'hasil-ikm'
         : (request()->routeIs('admin.laporan') ? 'laporan'
         : (request()->routeIs('admin.grafik') ? 'grafik'
-        : request('page', 'dashboard')))))))));
+        : request('page', 'dashboard'))))))));
 @endphp
 
 <aside class="fixed inset-y-0 left-0 z-10 flex w-14 flex-col bg-[#102342] text-slate-400 lg:w-48">
@@ -53,17 +53,21 @@
             @endif
 
             @php
-                $href = match ($slug) {
-                    'pengguna' => route('admin.users'),
-                    'responden' => route('admin.respondens'),
-                    'kritik-saran' => route('admin.kritik-saran'),
-                    'unsur-pelayanan' => route('admin.unsur-pelayanan'),
-                    'hasil-ikm' => route('admin.hasil-ikm'),
-                    // 'grafik' => route('admin.grafik'),
-                    'laporan' => route('admin.laporan'),
-                    default => route('admin.dashboard', ['page' => $slug]),
-                };
-            @endphp
+        $hiddenForPetugas = ['pengguna'];
+
+        $menus = [
+            ['dashboard', 'Dashboard', 'fa-gauge-high'],
+            ['pengguna', 'Pengguna', 'fa-users'],
+            // ['periode-survei', 'Periode Survei', 'fa-calendar-days'],
+            ['unsur-pelayanan', 'Unsur Pelayanan', 'fa-list-check'],
+            ['responden', 'Responden', 'fa-user-group'],
+            // ['hasil-survei', 'Hasil Survei', 'fa-square-poll-vertical'],
+            ['kritik-saran', 'Kritik & Saran', 'fa-comments'],
+            ['hasil-ikm', 'Hasil IKM', 'fa-chart-line'],
+            ['grafik', 'Grafik', 'fa-chart-column'],
+            ['laporan', 'Laporan', 'fa-file-lines'],
+        ];
+    @endphp
 
             <a
                 href="{{ $href }}"

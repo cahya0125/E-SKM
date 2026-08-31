@@ -1,6 +1,10 @@
 import './bootstrap';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Alpine from 'alpinejs';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
+window.Chart = Chart;
 
 window.Alpine = Alpine;
 
